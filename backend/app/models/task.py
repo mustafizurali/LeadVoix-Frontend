@@ -4,7 +4,6 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
-    Numeric,
     String,
     Text,
 )
@@ -14,8 +13,8 @@ from sqlalchemy.sql import func
 from backend.app.db.database import Base
 
 
-class Deal(Base):
-    __tablename__ = "deals"
+class Task(Base):
+    __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
 
@@ -24,31 +23,25 @@ class Deal(Base):
         nullable=False,
     )
 
-    amount = Column(
-        Numeric(12, 2),
-        nullable=False,
-        default=0,
+    description = Column(
+        Text,
+        nullable=True,
     )
 
-    currency = Column(
+    priority = Column(
         String,
         nullable=False,
-        default="USD",
+        default="MEDIUM",
     )
 
     status = Column(
         String,
         nullable=False,
-        default="OPEN",
+        default="TODO",
     )
 
-    expected_close_date = Column(
+    due_date = Column(
         Date,
-        nullable=True,
-    )
-
-    description = Column(
-        Text,
         nullable=True,
     )
 
@@ -58,15 +51,9 @@ class Deal(Base):
         nullable=False,
     )
 
-    pipeline_id = Column(
+    deal_id = Column(
         Integer,
-        ForeignKey("pipelines.id"),
-        nullable=True,
-    )
-
-    stage_id = Column(
-        Integer,
-        ForeignKey("pipeline_stages.id"),
+        ForeignKey("deals.id"),
         nullable=True,
     )
 
@@ -88,10 +75,16 @@ class Deal(Base):
         nullable=True,
     )
 
-    owner_id = Column(
+    assigned_to = Column(
         Integer,
         ForeignKey("users.id"),
         nullable=True,
+    )
+
+    created_by = Column(
+        Integer,
+        ForeignKey("users.id"),
+        nullable=False,
     )
 
     created_at = Column(
@@ -109,40 +102,37 @@ class Deal(Base):
 
     organization = relationship(
         "Organization",
-        back_populates="deals",
+        back_populates="tasks",
     )
 
-    pipeline = relationship(
-        "Pipeline",
-        back_populates="deals",
-    )
-
-    stage = relationship(
-        "PipelineStage",
-        back_populates="deals",
+    deal = relationship(
+        "Deal",
+        back_populates="tasks",
     )
 
     lead = relationship(
         "Lead",
-        back_populates="deals",
+        back_populates="tasks",
     )
 
     contact = relationship(
         "Contact",
-        back_populates="deals",
+        back_populates="tasks",
     )
 
     company = relationship(
         "Company",
-        back_populates="deals",
+        back_populates="tasks",
     )
 
-    owner = relationship(
+    assignee = relationship(
         "User",
-        back_populates="deals",
+        foreign_keys=[assigned_to],
+        back_populates="assigned_tasks",
     )
 
-    tasks = relationship(
-    "Task",
-    back_populates="deal",
+    creator = relationship(
+        "User",
+        foreign_keys=[created_by],
+        back_populates="created_tasks",
     )

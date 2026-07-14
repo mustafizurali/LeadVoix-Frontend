@@ -43,6 +43,11 @@ class Company(Base):
     
     
     deals = relationship(
-    "Deal",
-    back_populates="company",
+     "Deal",
+      back_populates="company",
+    )
+
+    tasks = relationship(
+      "Task",
+      back_populates="company",
     )

@@ -6,3 +6,4 @@ from .company import Company
 from .pipeline import Pipeline
 from .pipeline_stage import PipelineStage
 from .deal import Deal
+from .task import Task

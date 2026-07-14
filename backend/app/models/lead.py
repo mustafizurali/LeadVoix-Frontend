@@ -43,6 +43,11 @@ class Lead(Base):
     )
 
     deals = relationship(
-    "Deal",
-    back_populates="lead",
+     "Deal",
+     back_populates="lead",
     )
+
+    tasks = relationship(
+     "Task",
+     back_populates="lead",
+    ) 

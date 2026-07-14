@@ -32,3 +32,14 @@ class User(Base):
         nullable=False,
         default="user"
     )
+
+    assigned_tasks = relationship(
+     "Task",
+     foreign_keys="Task.assigned_to",
+     back_populates="assignee",
+    )
+    created_tasks = relationship(
+     "Task",
+     foreign_keys="Task.created_by",
+     back_populates="creator",
+    )

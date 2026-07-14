@@ -6,11 +6,13 @@ from backend.app.api.lead import router as lead_router
 from backend.app.api.company import router as company_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.deal import router as deal_router
+from backend.app.api.task import router as task_router
 
 
 app = FastAPI(title="LeadVoix OS API")
 
 app.include_router(auth_router)
+app.include_router(task_router)
 app.include_router(pipeline_router)
 app.include_router(organization_router)
 app.include_router(contact_router)

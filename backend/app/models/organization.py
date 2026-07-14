@@ -48,3 +48,8 @@ class Organization(Base):
     "Deal",
     back_populates="organization",
     )
+
+    tasks = relationship(
+    "Task",
+    back_populates="organization",
+    )
