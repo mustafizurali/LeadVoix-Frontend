@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { tokenStorage } from "@/lib/auth/tokenStorage";
+import { tokenStorage } from "@/lib/api/tokenStorage";
 
 interface User {
   id: number;

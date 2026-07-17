@@ -25,10 +25,12 @@ export default function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-
+  
   const onSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data);
+   console.log("Submitting:", data);
+   loginMutation.mutate(data);
   };
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100">
@@ -69,14 +71,20 @@ export default function LoginForm() {
               )}
             </div>
 
-            <Button
-              className="w-full"
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending
-                ? "Signing In..."
-                : "Sign In"}
-            </Button>
+           
+           <button
+           type="submit"
+           className="w-full rounded-md bg-black py-2 text-white"
+>
+           Login
+</button>
+              
+              
+          
+          
+                
+                
+            
           </form>
         </CardContent>
       </Card>

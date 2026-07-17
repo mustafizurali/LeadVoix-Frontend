@@ -40,7 +40,10 @@ def authenticate_user(db: Session, email: str, password: str):
     if not user:
         print("USER NOT FOUND")
         return None
-
+    
+    print("Password Length:", len(password))
+    print("Hash:", user.hashed_password) 
+    print("Hash Length:", len(user.hashed_password))
 
     result = verify_password(password, user.hashed_password)
 
