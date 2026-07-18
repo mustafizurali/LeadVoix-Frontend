@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CreateLeadPayload } from "../types/lead.types";
+import { createLead } from "../api/leadApi";
 
 interface CreateLeadModalProps {
   open: boolean;
@@ -23,6 +25,7 @@ export default function CreateLeadModal({
   });
 
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -34,7 +37,47 @@ export default function CreateLeadModal({
       [e.target.name]: e.target.value,
     }));
   };
+    const handleSubmit = async () => {
+    try {
+    setLoading(true);
+    if (!form.first_name.trim()) {
+    alert("First Name is required");
+   return;
+   }
+    const payload: CreateLeadPayload = {
+   first_name: form.first_name,
+   last_name: form.last_name || undefined,
+   email: form.email || undefined,
+   phone: form.phone || undefined,
+   company: form.company || undefined,
+   source: form.source || undefined,
+   notes: form.notes || undefined,
+   };
 
+   await createLead(payload);
+
+    await queryClient.invalidateQueries({
+      queryKey: ["leads"],
+    });
+
+    setForm({
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      company: "",
+      source: "",
+      notes: "",
+    });
+
+    onClose();
+  } catch (error) {
+    console.error(error);
+    alert("Failed to create lead");
+  } finally {
+    setLoading(false);
+  }
+};
   if (!open) return null;
 
   return (
@@ -129,7 +172,8 @@ export default function CreateLeadModal({
           </button>
 
           <button
-            disabled={loading}
+             onClick={handleSubmit}
+              disabled={loading || !form.first_name.trim()}
             className="rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
           >
             {loading ? "Creating..." : "Create Lead"}
