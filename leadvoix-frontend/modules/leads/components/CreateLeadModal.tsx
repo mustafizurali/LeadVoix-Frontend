@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { CreateLeadPayload } from "../types/lead.types";
+
 interface CreateLeadModalProps {
   open: boolean;
   onClose: () => void;
@@ -9,6 +12,29 @@ export default function CreateLeadModal({
   open,
   onClose,
 }: CreateLeadModalProps) {
+  const [form, setForm] = useState<CreateLeadPayload>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    company: "",
+    source: "",
+    notes: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement
+    >
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
   if (!open) return null;
 
   return (
@@ -27,9 +53,88 @@ export default function CreateLeadModal({
           </button>
         </div>
 
-        <p className="text-slate-500">
-          Lead form will be added in the next step.
-        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="first_name"
+            placeholder="First Name"
+            value={form.first_name}
+            onChange={handleChange}
+            className="rounded-lg border p-2"
+          />
+
+          <input
+            type="text"
+            name="last_name"
+            placeholder="Last Name"
+            value={form.last_name}
+            onChange={handleChange}
+            className="rounded-lg border p-2"
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            className="rounded-lg border p-2"
+          />
+
+          <input
+            type="text"
+            name="phone"
+            placeholder="Phone"
+            value={form.phone}
+            onChange={handleChange}
+            className="rounded-lg border p-2"
+          />
+
+          <input
+            type="text"
+            name="company"
+            placeholder="Company"
+            value={form.company}
+            onChange={handleChange}
+            className="rounded-lg border p-2"
+          />
+
+          <input
+            type="text"
+            name="source"
+            placeholder="Source"
+            value={form.source}
+            onChange={handleChange}
+            className="rounded-lg border p-2"
+          />
+
+          <div className="col-span-2">
+            <textarea
+              name="notes"
+              placeholder="Notes"
+              value={form.notes}
+              onChange={handleChange}
+              rows={4}
+              className="w-full rounded-lg border p-2"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="rounded-lg border px-4 py-2"
+          >
+            Cancel
+          </button>
+
+          <button
+            disabled={loading}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+          >
+            {loading ? "Creating..." : "Create Lead"}
+          </button>
+        </div>
       </div>
     </div>
   );
