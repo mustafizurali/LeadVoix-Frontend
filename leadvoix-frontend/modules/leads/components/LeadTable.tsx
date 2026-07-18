@@ -1,8 +1,16 @@
 "use client";
 
 import { useLeads } from "../hooks/useLeads";
+import { Lead } from "../types/lead.types";
 
-export default function LeadTable() {
+interface LeadTableProps {
+  onEditLead: (lead: Lead) => void;
+  onDeleteLead: (lead: Lead) => void;
+}
+export default function LeadTable ({
+  onEditLead,
+  onDeleteLead,
+ }: LeadTableProps) {
   const {
     data: leads,
     isLoading,
@@ -113,12 +121,22 @@ export default function LeadTable() {
                   {lead.source ?? "-"}
                 </td>
 
-                <td className="px-6 py-4 text-center">
+                <td className="px-6 py-4">
+                <div className="flex justify-center gap-2">
+                 <button
+                 onClick={() => onEditLead(lead)}
+                 className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
+              >
+               Edit
+               </button>
+
                   <button
-                    className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
-                  >
-                    Edit
+                 onClick={() => onDeleteLead(lead)}
+                 className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition hover:bg-red-700"
+                >
+                 Delete
                   </button>
+                 </div>
                 </td>
               </tr>
             ))}

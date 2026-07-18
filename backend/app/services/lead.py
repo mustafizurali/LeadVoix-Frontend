@@ -85,3 +85,36 @@ def update_lead(
     db.refresh(db_lead)
 
     return db_lead
+
+def delete_lead(
+    db: Session,
+    lead_id: int,
+    current_user: User,
+):
+    if current_user.organization_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="User is not assigned to any organization",
+        )
+
+    db_lead = (
+        db.query(Lead)
+        .filter(
+            Lead.id == lead_id,
+            Lead.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
+
+    if not db_lead:
+        raise HTTPException(
+            status_code=404,
+            detail="Lead not found",
+        )
+
+    db.delete(db_lead)
+    db.commit()
+
+    return {
+        "message": "Lead deleted successfully"
+    }

@@ -1,26 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { createLead } from "../api/leadApi";
-import { CreateLeadPayload } from "../types/lead.types";
+import { updateLead } from "../api/leadApi";
+import { Lead, UpdateLeadPayload } from "../types/lead.types";
 import LeadForm from "./LeadForm";
 
-interface CreateLeadModalProps {
+interface EditLeadModalProps {
   open: boolean;
   onClose: () => void;
+  lead: Lead | null;
 }
 
-export default function CreateLeadModal({
+export default function EditLeadModal({
   open,
   onClose,
-}: CreateLeadModalProps) {
+  lead,
+}: EditLeadModalProps) {
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState<CreateLeadPayload>({
+  const [form, setForm] = useState<UpdateLeadPayload>({
     first_name: "",
     last_name: "",
     email: "",
@@ -28,12 +30,26 @@ export default function CreateLeadModal({
     company: "",
     source: "",
     notes: "",
+    status: "",
   });
 
+  useEffect(() => {
+    if (lead) {
+      setForm({
+        first_name: lead.first_name,
+        last_name: lead.last_name ?? "",
+        email: lead.email ?? "",
+        phone: lead.phone ?? "",
+        company: lead.company ?? "",
+        source: lead.source ?? "",
+        notes: lead.notes ?? "",
+        status: lead.status,
+      });
+    }
+  }, [lead]);
+
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setForm((prev) => ({
       ...prev,
@@ -41,63 +57,46 @@ export default function CreateLeadModal({
     }));
   };
 
-  const resetForm = () => {
-    setForm({
-      first_name: "",
-      last_name: "",
-      email: "",
-      phone: "",
-      company: "",
-      source: "",
-      notes: "",
-    });
-  };
-
   const handleSubmit = async () => {
-    if (!form.first_name.trim()) {
-      alert("First Name is required");
-      return;
-    }
+    if (!lead) return;
 
     try {
       setLoading(true);
 
-      const payload = {
-        ...form,
+      const payload: UpdateLeadPayload = {
+        first_name: form.first_name?.trim(),
+        last_name: form.last_name?.trim() || undefined,
         email: form.email?.trim() || undefined,
         phone: form.phone?.trim() || undefined,
         company: form.company?.trim() || undefined,
         source: form.source?.trim() || undefined,
         notes: form.notes?.trim() || undefined,
-        last_name: form.last_name?.trim() || undefined,
+        status: form.status?.trim() || undefined,
       };
 
-      await createLead(payload);
+      await updateLead(lead.id, payload);
 
       await queryClient.invalidateQueries({
         queryKey: ["leads"],
       });
 
-      resetForm();
-
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Failed to create lead");
+      alert("Failed to update lead");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!open) return null;
+  if (!open || !lead) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-xl">
-
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-3xl font-bold">
-            Create New Lead
+            Edit Lead
           </h2>
 
           <button
@@ -126,10 +125,9 @@ export default function CreateLeadModal({
             disabled={loading}
             className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Creating..." : "Create Lead"}
+            {loading ? "Updating..." : "Update Lead"}
           </button>
         </div>
-
       </div>
     </div>
   );

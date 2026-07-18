@@ -27,3 +27,9 @@ export const updateLead = async (
 
   return response.data;
 };
+
+export const deleteLead = async (
+  id: number
+): Promise<void> => {
+  await api.delete(`/leads/${id}`);
+};
