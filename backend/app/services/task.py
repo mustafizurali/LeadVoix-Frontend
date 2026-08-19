@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 from backend.app.models.company import Company
 from backend.app.models.contact import Contact
@@ -26,7 +27,7 @@ def create_task(
         )
 
     # Validate Deal
-    if task.deal_id:
+    if task.deal_id is not None:
         deal = (
             db.query(Deal)
             .filter(
@@ -43,7 +44,7 @@ def create_task(
             )
 
     # Validate Lead
-    if task.lead_id:
+    if task.lead_id is not None:
         lead = (
             db.query(Lead)
             .filter(
@@ -60,7 +61,7 @@ def create_task(
             )
 
     # Validate Contact
-    if task.contact_id:
+    if task.contact_id is not None:
         contact = (
             db.query(Contact)
             .filter(
@@ -77,7 +78,7 @@ def create_task(
             )
 
     # Validate Company
-    if task.company_id:
+    if task.company_id  is not None:
         company = (
             db.query(Company)
             .filter(
@@ -94,7 +95,7 @@ def create_task(
             )
 
     # Validate Assigned User
-    if task.assigned_to:
+    if task.assigned_to is not None :
         assignee = (
             db.query(User)
             .filter(
@@ -135,21 +136,87 @@ def create_task(
 def get_tasks(
     db: Session,
     current_user: User,
+     search: str | None = None,
+    status: str | None = None,
+    priority: str | None = None,
+    assigned_to: int | None = None,
+    company_id: int | None = None,
+    page: int = 1,
+    limit: int = 10,
+    sort_by: str = "created_at",
+    order: str = "desc",
     ):
     if current_user.organization_id is None:
         raise HTTPException(
             status_code=400,
             detail="User is not assigned to any organization",
         )
+    query = db.query(Task).filter(Task.organization_id == current_user.organization_id)
 
-    return (
-        db.query(Task)
-        .filter(
-            Task.organization_id == current_user.organization_id,
+    # Search
+    if search:
+        search_val = f"%{search}%"
+        query = query.filter(
+            or_(
+                Task.title.ilike(search_val),
+                Task.description.ilike(search_val),
+            )
         )
-        .order_by(Task.created_at.desc())
+
+    # Status filter
+    if status:
+        query = query.filter(Task.status == status)
+
+    # Priority filter
+    if priority:
+        query = query.filter(Task.priority == priority)
+
+    # Assigned to filter
+    if assigned_to:
+        query = query.filter(Task.assigned_to == assigned_to)
+
+    # Company filter
+    if company_id:
+        query = query.filter(Task.company_id == company_id)
+
+    # Sorting
+    allowed_sort_fields = {
+        "id": Task.id,
+        "title": Task.title,
+        "priority": Task.priority,
+        "status": Task.status,
+        "due_date": Task.due_date,
+        "created_at": Task.created_at,
+        "updated_at": Task.updated_at,
+    }
+
+    sort_column = allowed_sort_fields.get(
+        sort_by,
+        Task.created_at,
+    )
+
+    if order.lower() == "asc":
+        query = query.order_by(sort_column.asc())
+    else:
+        query = query.order_by(sort_column.desc())
+
+    # Pagination
+    total = query.count()
+
+    tasks = (
+        query
+        .offset((page - 1) * limit)
+        .limit(limit)
         .all()
     )
+
+    return {
+        "items": tasks,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": (total + limit - 1) // limit,
+    }
 
 
 def get_task(

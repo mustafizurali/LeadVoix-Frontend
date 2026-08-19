@@ -67,3 +67,12 @@ class DealUpdate(BaseModel):
     contact_id: Optional[int] = None
     company_id: Optional[int] = None
     owner_id: Optional[int] = None
+ 
+ 
+class DealListResponse(BaseModel):
+    items: list[DealResponse]
+
+    total: int
+    page: int
+    limit: int
+    total_pages: int

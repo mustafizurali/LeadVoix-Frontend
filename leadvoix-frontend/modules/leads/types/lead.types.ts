@@ -54,3 +54,15 @@ export interface UpdateLeadPayload {
 
   status?: string;
 }
+
+export interface LeadListResponse {
+  items: Lead[];
+
+  total: number;
+
+  page: number;
+
+  limit: number;
+
+  total_pages: number;
+}

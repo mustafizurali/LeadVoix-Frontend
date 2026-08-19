@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
+from sqlalchemy import or_
 from backend.app.models.company import Company
 from backend.app.models.contact import Contact
 from backend.app.models.deal import Deal
@@ -154,6 +154,15 @@ def create_deal(
 def get_deals(
     db: Session,
     current_user: User,
+     search: str | None = None,
+    status: str | None = None,
+    pipeline_id: int | None = None,
+    owner_id: int | None = None,
+    company_id: int | None = None,
+    page: int = 1,
+    limit: int = 10,
+    sort_by: str = "created_at",
+    order: str = "desc",
 ):
     if current_user.organization_id is None:
         raise HTTPException(
@@ -161,14 +170,88 @@ def get_deals(
             detail="User is not assigned to any organization",
         )
 
-    return (
+    query = (
         db.query(Deal)
         .filter(
             Deal.organization_id == current_user.organization_id,
         )
-        .order_by(Deal.created_at.desc())
+    )
+
+    # Search
+    if search:
+        search = f"%{search}%"
+        query = query.filter(
+            or_(
+                Deal.title.ilike(search),
+                Deal.description.ilike(search),
+            )
+        )
+
+    # Filters
+    if status:
+        query = query.filter(
+            Deal.status == status
+        )
+
+    if pipeline_id is not None:
+        query = query.filter(
+            Deal.pipeline_id == pipeline_id
+        )
+
+    if owner_id is not None:
+        query = query.filter(
+            Deal.owner_id == owner_id
+        )
+
+    if company_id is not None:
+        query = query.filter(
+            Deal.company_id == company_id
+        )
+
+    allowed_sort_fields = {
+        "id": Deal.id,
+        "title": Deal.title,
+        "amount": Deal.amount,
+        "currency": Deal.currency,
+        "status": Deal.status,
+        "expected_close_date": Deal.expected_close_date,
+        "description": Deal.description,
+        "organization_id": Deal.organization_id,
+        "pipeline_id": Deal.pipeline_id,
+        "stage_id": Deal.stage_id,
+        "lead_id": Deal.lead_id,
+        "contact_id": Deal.contact_id,
+        "company_id": Deal.company_id,
+        "owner_id": Deal.owner_id,
+        "created_at": Deal.created_at,
+        "updated_at": Deal.updated_at,
+    }
+
+    sort_column = allowed_sort_fields.get(
+        sort_by,
+        Deal.created_at,
+    )
+
+    if order.lower() == "asc":
+        query = query.order_by(sort_column.asc())
+    else:
+        query = query.order_by(sort_column.desc())
+
+    total = query.count()
+
+    deals = (
+        query
+        .offset((page - 1) * limit)
+        .limit(limit)
         .all()
     )
+    return {
+    "items": deals,
+    "total": total,
+    "page": page,
+    "limit": limit,
+    "total_pages": (total + limit - 1) // limit,
+}
 
 
 def get_deal(
@@ -198,11 +281,8 @@ def get_deal(
         )
 
     return db_deal
-    
-     
-     
-     
-     
+
+
 def update_deal(
     db: Session,
     deal_id: int,

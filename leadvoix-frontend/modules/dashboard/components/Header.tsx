@@ -10,7 +10,7 @@ export default function Header() {
 
   const handleLogout = () => {
     logout();
-    router.push("/");
+    router.replace("/login");
   };
 
   return (

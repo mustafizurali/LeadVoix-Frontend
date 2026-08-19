@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from fastapi import Query
 
 from backend.app.db.database import get_db
 from backend.app.models.user import User
@@ -7,6 +8,7 @@ from backend.app.schemas.deal import (
     DealCreate,
     DealResponse,
     DealUpdate,
+    DealListResponse,
 )
 from backend.app.services.deal import (
     create_deal,
@@ -41,15 +43,33 @@ def create_new_deal(
 
 @router.get(
     "/",
-    response_model=list[DealResponse],
+    response_model=DealListResponse,
 )
 def list_deals(
+    search: str | None = Query(None),
+    status: str | None = Query(None),
+    pipeline_id: int | None = Query(None),
+    owner_id: int | None = Query(None),
+    company_id: int | None = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    sort_by: str = Query("created_at"),
+    order: str = Query("desc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return get_deals(
-        db,
-        current_user,
+        db=db,
+        current_user=current_user,
+        search=search,
+        status=status,
+        pipeline_id=pipeline_id,
+        owner_id=owner_id,
+        company_id=company_id,
+        page=page,
+        limit=limit,
+        sort_by=sort_by,
+        order=order,
     )
 
 

@@ -21,7 +21,11 @@ export const useLogin = () => {
 
       setAccessToken(data.access_token);
 
-      router.push("/dashboard");
+      router.replace("/dashboard");
     },
+
+    onError: (error) => {
+     console.error(error);
+    }
   });
 };

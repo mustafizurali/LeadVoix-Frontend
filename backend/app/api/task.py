@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
@@ -8,6 +8,7 @@ from backend.app.schemas.task import (
     TaskCreate,
     TaskResponse,
     TaskUpdate,
+     TaskListResponse,
 )
 
 from backend.app.services.task import (
@@ -42,20 +43,36 @@ def create_new_task(
         current_user,
     )
 
-
 @router.get(
     "/",
-    response_model=list[TaskResponse],
+    response_model=TaskListResponse,
 )
 def list_tasks(
+    search: str | None = Query(None),
+    status: str | None = Query(None),
+    priority: str | None = Query(None),
+    assigned_to: int | None = Query(None),
+    company_id: int | None = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    sort_by: str = Query("created_at"),
+    order: str = Query("desc"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return get_tasks(
-        db,
-        current_user,
+        db=db,
+        current_user=current_user,
+        search=search,
+        status=status,
+        priority=priority,
+        assigned_to=assigned_to,
+        company_id=company_id,
+        page=page,
+        limit=limit,
+        sort_by=sort_by,
+        order=order,
     )
-
 
 @router.get(
     "/{task_id}",

@@ -1,12 +1,33 @@
 import api from "@/lib/api/axios";
 import {
   Lead,
+  LeadListResponse,
   CreateLeadPayload,
-  UpdateLeadPayload,
+  UpdateLeadPayload, 
 } from "../types/lead.types";
 
-export const getLeads = async (): Promise<Lead[]> => {
-  const response = await api.get("/leads");
+export const getLeads = async (
+  page = 1,
+  limit = 10,
+  search = "",
+  status?: string,
+  source?: string,
+  company?: string,
+  sort_by = "created_at",
+  order = "desc"
+): Promise<LeadListResponse> => {
+  const response = await api.get("/leads", {
+    params: {
+      page,
+      limit,
+      search,
+      status,
+      source,
+      company,
+      sort_by,
+      order,
+    },
+  });
 
   return response.data;
 };

@@ -7,15 +7,18 @@ interface LeadTableProps {
   onEditLead: (lead: Lead) => void;
   onDeleteLead: (lead: Lead) => void;
 }
-export default function LeadTable ({
+
+export default function LeadTable({
   onEditLead,
   onDeleteLead,
- }: LeadTableProps) {
+}: LeadTableProps) {
   const {
-    data: leads,
+    data,
     isLoading,
     error,
   } = useLeads();
+
+  const leads = data?.items ?? [];
 
   if (isLoading) {
     return (
@@ -33,7 +36,7 @@ export default function LeadTable ({
     );
   }
 
-  if (!leads || leads.length === 0) {
+  if (leads.length === 0) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
         No leads found.
@@ -49,7 +52,7 @@ export default function LeadTable ({
         </h2>
 
         <span className="text-sm text-slate-500">
-          Total: {leads.length}
+          Total: {data?.total ?? 0}
         </span>
       </div>
 
@@ -122,26 +125,36 @@ export default function LeadTable ({
                 </td>
 
                 <td className="px-6 py-4">
-                <div className="flex justify-center gap-2">
-                 <button
-                 onClick={() => onEditLead(lead)}
-                 className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
-              >
-               Edit
-               </button>
+                  <div className="flex justify-center gap-2">
+                    <button
+                      onClick={() => onEditLead(lead)}
+                      className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
+                    >
+                      Edit
+                    </button>
 
-                  <button
-                 onClick={() => onDeleteLead(lead)}
-                 className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition hover:bg-red-700"
-                >
-                 Delete
-                  </button>
-                 </div>
+                    <button
+                      onClick={() => onDeleteLead(lead)}
+                      className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex items-center justify-between border-t px-6 py-4">
+        <p className="text-sm text-slate-500">
+          Page {data?.page ?? 1} of {data?.total_pages ?? 1}
+        </p>
+
+        <p className="text-sm text-slate-500">
+          Total Leads: {data?.total ?? 0}
+        </p>
       </div>
     </div>
   );
