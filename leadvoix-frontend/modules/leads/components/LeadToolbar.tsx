@@ -1,10 +1,14 @@
 "use client";
 
 interface LeadToolbarProps {
+  search: string;
+  onSearchChange: (value: string) => void;
   onCreateLead: () => void;
 }
 
 export default function LeadToolbar({
+  search,
+  onSearchChange,
   onCreateLead,
 }: LeadToolbarProps) {
   return (
@@ -12,6 +16,8 @@ export default function LeadToolbar({
       <input
         type="text"
         placeholder="Search leads..."
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
         className="w-full max-w-md rounded-lg border border-slate-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
       />
 

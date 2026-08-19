@@ -4,11 +4,13 @@ import { useLeads } from "../hooks/useLeads";
 import { Lead } from "../types/lead.types";
 
 interface LeadTableProps {
+  search: string;
   onEditLead: (lead: Lead) => void;
   onDeleteLead: (lead: Lead) => void;
 }
 
 export default function LeadTable({
+  search,
   onEditLead,
   onDeleteLead,
 }: LeadTableProps) {
@@ -16,7 +18,9 @@ export default function LeadTable({
     data,
     isLoading,
     error,
-  } = useLeads();
+  } = useLeads({
+    search,
+  });
 
   const leads = data?.items ?? [];
 

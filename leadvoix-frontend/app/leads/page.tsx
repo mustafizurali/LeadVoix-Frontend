@@ -17,9 +17,8 @@ export default function LeadsPage() {
 
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [selectedLead, setSelectedLead] =
-    useState<Lead | null>(null);
   const [search, setSearch] = useState("");
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   const handleEditLead = (lead: Lead) => {
     setSelectedLead(lead);
@@ -66,9 +65,9 @@ export default function LeadsPage() {
         </div>
 
         <LeadToolbar
+          onCreateLead={() => setOpenCreate(true)}
           search={search}
           onSearchChange={setSearch}
-          onCreateLead={() => setOpenCreate(true)}
         />
 
         <LeadTable
