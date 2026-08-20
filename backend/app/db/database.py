@@ -19,3 +19,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
+        # Import all models so Alembic can detect them
+from backend.app.models import *

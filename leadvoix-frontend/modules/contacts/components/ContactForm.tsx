@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  CreateLeadPayload,
-  UpdateLeadPayload,
-} from "../types/lead.types";
+  CreateContactPayload,
+  UpdateContactPayload,
+} from "../types/contact.types";
 
-interface LeadFormProps {
-  form: Partial<CreateLeadPayload & UpdateLeadPayload>;
+interface ContactFormProps {
+  form: CreateContactPayload | UpdateContactPayload;
   onChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement
@@ -14,17 +14,17 @@ interface LeadFormProps {
   ) => void;
 }
 
-export default function LeadForm({
+export default function ContactForm({
   form,
   onChange,
-}: LeadFormProps) {
+}: ContactFormProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <input
         type="text"
         name="first_name"
         placeholder="First Name"
-        value={form.first_name ?? ""}
+        value={form.first_name}
         onChange={onChange}
         className="rounded-lg border p-2"
       />
@@ -56,31 +56,13 @@ export default function LeadForm({
         className="rounded-lg border p-2"
       />
 
-      <input
-        type="text"
-        name="company"
-        placeholder="Company"
-        value={form.company ?? ""}
-        onChange={onChange}
-        className="rounded-lg border p-2"
-      />
-
-      <input
-        type="text"
-        name="source"
-        placeholder="Source"
-        value={form.source ?? ""}
-        onChange={onChange}
-        className="rounded-lg border p-2"
-      />
-
       <div className="col-span-2">
-        <textarea
-          name="notes"
-          placeholder="Notes"
-          value={form.notes ?? ""}
+        <input
+          type="text"
+          name="company"
+          placeholder="Company"
+          value={form.company ?? ""}
           onChange={onChange}
-          rows={4}
           className="w-full rounded-lg border p-2"
         />
       </div>

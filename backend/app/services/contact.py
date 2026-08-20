@@ -1,5 +1,7 @@
-from fastapi import HTTPException
+from math import ceil
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 
 from backend.app.models.contact import Contact
 from backend.app.models.user import User
@@ -14,7 +16,7 @@ def create_contact(
     if current_user.organization_id is None:
         raise HTTPException(
             status_code=400,
-            detail="User is not assigned to any organization"
+            detail="User is not assigned to any organization",
         )
 
     db_contact = Contact(
@@ -37,20 +39,50 @@ def create_contact(
 def get_contacts(
     db: Session,
     current_user: User,
+    page: int = 1,
+    limit: int = 10,
+    search: str | None = None,
 ):
     if current_user.organization_id is None:
         raise HTTPException(
             status_code=400,
-            detail="User is not assigned to any organization"
+            detail="User is not assigned to any organization",
         )
 
-    return (
-        db.query(Contact)
-        .filter(
-            Contact.organization_id == current_user.organization_id
+    query = db.query(Contact).filter(
+        Contact.organization_id == current_user.organization_id
+    )
+
+    if search:
+        query = query.filter(
+            or_(
+                Contact.first_name.ilike(f"%{search}%"),
+                Contact.last_name.ilike(f"%{search}%"),
+                Contact.email.ilike(f"%{search}%"),
+                Contact.phone.ilike(f"%{search}%"),
+                Contact.company.ilike(f"%{search}%"),
+            )
         )
+
+    total = query.count()
+
+    contacts = (
+        query
+        .offset((page - 1) * limit)
+        .limit(limit)
         .all()
     )
+
+    total_pages = ceil(total / limit) if total > 0 else 1
+
+    return {
+        "items": contacts,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+    }
+
 
 def update_contact(
     db: Session,
@@ -70,7 +102,7 @@ def update_contact(
     if not db_contact:
         raise HTTPException(
             status_code=404,
-            detail="Contact not found"
+            detail="Contact not found",
         )
 
     update_data = contact.model_dump(exclude_unset=True)
@@ -82,3 +114,31 @@ def update_contact(
     db.refresh(db_contact)
 
     return db_contact
+
+
+def delete_contact(
+    db: Session,
+    contact_id: int,
+    current_user: User,
+):
+    db_contact = (
+        db.query(Contact)
+        .filter(
+            Contact.id == contact_id,
+            Contact.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
+
+    if not db_contact:
+        raise HTTPException(
+            status_code=404,
+            detail="Contact not found",
+        )
+
+    db.delete(db_contact)
+    db.commit()
+
+    return {
+        "message": "Contact deleted successfully"
+    }

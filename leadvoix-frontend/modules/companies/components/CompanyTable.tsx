@@ -1,33 +1,33 @@
 "use client";
 
-import { useLeads } from "../hooks/useLeads";
-import { Lead } from "../types/lead.types";
+import { Company } from "../types/company.types";
+import { useCompanies } from "../hooks/useCompanies";
 
-interface LeadTableProps {
+interface CompanyTableProps {
   search: string;
-  onEditLead: (lead: Lead) => void;
-  onDeleteLead: (lead: Lead) => void;
+  onEditCompany: (company: Company) => void;
+  onDeleteCompany: (company: Company) => void;
 }
 
-export default function LeadTable({
+export default function CompanyTable({
   search,
-  onEditLead,
-  onDeleteLead,
-}: LeadTableProps) {
+  onEditCompany,
+  onDeleteCompany,
+}: CompanyTableProps) {
   const {
     data,
     isLoading,
     error,
-  } = useLeads({
+  } = useCompanies({
     search,
   });
 
-  const leads = data?.items ?? [];
+  const companies = data?.items ?? [];
 
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-        Loading leads...
+        Loading companies...
       </div>
     );
   }
@@ -35,131 +35,141 @@ export default function LeadTable({
   if (error) {
     return (
       <div className="rounded-xl border bg-white p-6 text-red-500 shadow-sm">
-        Failed to load leads.
+        Failed to load companies.
       </div>
     );
   }
 
-  if (leads.length === 0) {
+  if (companies.length === 0) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-        No leads found.
+        No companies found.
       </div>
     );
   }
 
   return (
     <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+
       <div className="flex items-center justify-between border-b px-6 py-4">
         <h2 className="text-xl font-semibold">
-          Leads
+          Companies
         </h2>
 
         <span className="text-sm text-slate-500">
-          Page {data?.page ?? 1} of {data?.total_pages ?? 1}
+          Total: {data?.total ?? 0}
         </span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full">
+
           <thead className="bg-slate-50">
             <tr>
+
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
                 Name
               </th>
 
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
-                Email
+                Domain
               </th>
 
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
-                Phone
+                Industry
               </th>
 
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
-                Company
+                Size
+              </th>
+
+              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
+                Website
               </th>
 
               <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
                 Status
               </th>
 
-              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
-                Source
-              </th>
-
               <th className="px-6 py-3 text-center text-sm font-semibold text-slate-600">
                 Actions
               </th>
+
             </tr>
           </thead>
 
           <tbody>
-            {leads.map((lead) => (
+            {companies.map((company) => (
               <tr
-                key={lead.id}
+                key={company.id}
                 className="border-t hover:bg-slate-50"
               >
-                <td className="px-6 py-4">
-                  <div className="font-medium">
-                    {lead.first_name} {lead.last_name ?? ""}
-                  </div>
+
+                <td className="px-6 py-4 font-medium">
+                  {company.name}
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.email ?? "-"}
+                  {company.domain ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.phone ?? "-"}
+                  {company.industry ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.company ?? "-"}
+                  {company.company_size ?? "-"}
+                </td>
+
+                <td className="px-6 py-4">
+                  {company.website ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
                   <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                    {lead.status}
+                    {company.status}
                   </span>
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.source ?? "-"}
-                </td>
-
-                <td className="px-6 py-4">
                   <div className="flex justify-center gap-2">
+
                     <button
-                      onClick={() => onEditLead(lead)}
-                      className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
+                      onClick={() => onEditCompany(company)}
+                      className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
                     >
                       Edit
                     </button>
 
                     <button
-                      onClick={() => onDeleteLead(lead)}
-                      className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition hover:bg-red-700"
+                      onClick={() => onDeleteCompany(company)}
+                      className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                     >
                       Delete
                     </button>
+
                   </div>
                 </td>
+
               </tr>
             ))}
           </tbody>
+
         </table>
       </div>
 
       <div className="flex items-center justify-between border-t px-6 py-4">
+
         <p className="text-sm text-slate-500">
           Page {data?.page ?? 1} of {data?.total_pages ?? 1}
         </p>
 
         <p className="text-sm text-slate-500">
-          Total Leads: {data?.total ?? 0}
+          Total Companies: {data?.total ?? 0}
         </p>
+
       </div>
+
     </div>
   );
 }

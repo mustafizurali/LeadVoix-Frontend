@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from backend.app.db.database import Base
 
@@ -22,28 +23,39 @@ class Contact(Base):
     status = Column(
         String,
         nullable=False,
-        default="new"
+        default="new",
     )
 
     organization_id = Column(
         Integer,
         ForeignKey("organizations.id"),
-        nullable=False
+        nullable=False,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
     )
 
     organization = relationship(
         "Organization",
-        back_populates="contacts"
+        back_populates="contacts",
     )
 
-
-
     deals = relationship(
-     "Deal",
-     back_populates="contact",
+        "Deal",
+        back_populates="contact",
     )
 
     tasks = relationship(
-     "Task",
-     back_populates="contact",
+        "Task",
+        back_populates="contact",
     )

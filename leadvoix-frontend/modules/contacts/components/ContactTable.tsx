@@ -1,33 +1,33 @@
 "use client";
 
-import { useLeads } from "../hooks/useLeads";
-import { Lead } from "../types/lead.types";
+import { Contact } from "../types/contact.types";
+import { useContacts } from "../hooks/useContacts";
 
-interface LeadTableProps {
+interface ContactTableProps {
   search: string;
-  onEditLead: (lead: Lead) => void;
-  onDeleteLead: (lead: Lead) => void;
+  onEditContact: (contact: Contact) => void;
+  onDeleteContact: (contact: Contact) => void;
 }
 
-export default function LeadTable({
+export default function ContactTable({
   search,
-  onEditLead,
-  onDeleteLead,
-}: LeadTableProps) {
+  onEditContact,
+  onDeleteContact,
+}: ContactTableProps) {
   const {
     data,
     isLoading,
     error,
-  } = useLeads({
+  } = useContacts({
     search,
   });
 
-  const leads = data?.items ?? [];
+  const contacts = data?.items ?? [];
 
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-        Loading leads...
+        Loading contacts...
       </div>
     );
   }
@@ -35,15 +35,15 @@ export default function LeadTable({
   if (error) {
     return (
       <div className="rounded-xl border bg-white p-6 text-red-500 shadow-sm">
-        Failed to load leads.
+        Failed to load contacts.
       </div>
     );
   }
 
-  if (leads.length === 0) {
+  if (contacts.length === 0) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
-        No leads found.
+        No contacts found.
       </div>
     );
   }
@@ -52,11 +52,11 @@ export default function LeadTable({
     <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
       <div className="flex items-center justify-between border-b px-6 py-4">
         <h2 className="text-xl font-semibold">
-          Leads
+          Contacts
         </h2>
 
         <span className="text-sm text-slate-500">
-          Page {data?.page ?? 1} of {data?.total_pages ?? 1}
+            Total: {contacts.length}
         </span>
       </div>
 
@@ -84,10 +84,6 @@ export default function LeadTable({
                 Status
               </th>
 
-              <th className="px-6 py-3 text-left text-sm font-semibold text-slate-600">
-                Source
-              </th>
-
               <th className="px-6 py-3 text-center text-sm font-semibold text-slate-600">
                 Actions
               </th>
@@ -95,50 +91,46 @@ export default function LeadTable({
           </thead>
 
           <tbody>
-            {leads.map((lead) => (
+            {contacts.map((contact: Contact) => (
               <tr
-                key={lead.id}
+                key={contact.id}
                 className="border-t hover:bg-slate-50"
               >
                 <td className="px-6 py-4">
                   <div className="font-medium">
-                    {lead.first_name} {lead.last_name ?? ""}
+                    {contact.first_name} {contact.last_name ?? ""}
                   </div>
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.email ?? "-"}
+                  {contact.email ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.phone ?? "-"}
+                  {contact.phone ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
-                  {lead.company ?? "-"}
+                  {contact.company ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
                   <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                    {lead.status}
+                    {contact.status}
                   </span>
-                </td>
-
-                <td className="px-6 py-4">
-                  {lead.source ?? "-"}
                 </td>
 
                 <td className="px-6 py-4">
                   <div className="flex justify-center gap-2">
                     <button
-                      onClick={() => onEditLead(lead)}
+                      onClick={() => onEditContact(contact)}
                       className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
                     >
                       Edit
                     </button>
 
                     <button
-                      onClick={() => onDeleteLead(lead)}
+                      onClick={() => onDeleteContact(contact)}
                       className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition hover:bg-red-700"
                     >
                       Delete
@@ -153,11 +145,11 @@ export default function LeadTable({
 
       <div className="flex items-center justify-between border-t px-6 py-4">
         <p className="text-sm text-slate-500">
-          Page {data?.page ?? 1} of {data?.total_pages ?? 1}
+          Page 1 of 1
         </p>
 
         <p className="text-sm text-slate-500">
-          Total Leads: {data?.total ?? 0}
+          Total Contacts: {contacts.length}
         </p>
       </div>
     </div>

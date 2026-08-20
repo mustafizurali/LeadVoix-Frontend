@@ -1,7 +1,7 @@
+from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr
-from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 
 
 class CompanyCreate(BaseModel):
@@ -37,3 +37,11 @@ class CompanyUpdate(BaseModel):
     website: Optional[str] = None
     notes: Optional[str] = None
     status: Optional[str] = None
+
+
+class CompanyListResponse(BaseModel):
+    items: list[CompanyResponse]
+    total: int
+    page: int
+    limit: int
+    total_pages: int

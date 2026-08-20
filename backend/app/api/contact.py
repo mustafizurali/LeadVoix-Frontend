@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
@@ -7,11 +7,13 @@ from backend.app.schemas.contact import (
     ContactCreate,
     ContactResponse,
     ContactUpdate,
+    ContactListResponse,
 )
 from backend.app.services.contact import (
     create_contact,
     get_contacts,
     update_contact,
+    delete_contact,
 )
 from backend.app.utils.dependencies import get_current_user
 
@@ -39,17 +41,22 @@ def create_new_contact(
 
 @router.get(
     "/",
-    response_model=list[ContactResponse],
+    response_model=ContactListResponse,
 )
 def list_contacts(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    search: str | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return get_contacts(
-        db,
-        current_user,
+        db=db,
+        current_user=current_user,
+        page=page,
+        limit=limit,
+        search=search,
     )
-
 
 @router.put(
     "/{contact_id}",
@@ -65,5 +72,20 @@ def edit_contact(
         db,
         contact_id,
         contact,
+        current_user,
+    )
+
+
+@router.delete(
+    "/{contact_id}",
+)
+def remove_contact(
+    contact_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return delete_contact(
+        db,
+        contact_id,
         current_user,
     )

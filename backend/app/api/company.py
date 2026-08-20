@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
@@ -7,11 +7,13 @@ from backend.app.schemas.company import (
     CompanyCreate,
     CompanyResponse,
     CompanyUpdate,
+    CompanyListResponse,
 )
 from backend.app.services.company import (
     create_company,
     get_companies,
     update_company,
+    delete_company,
 )
 from backend.app.utils.dependencies import get_current_user
 
@@ -39,15 +41,21 @@ def create_new_company(
 
 @router.get(
     "/",
-    response_model=list[CompanyResponse],
+    response_model=CompanyListResponse,
 )
 def list_companies(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    search: str | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return get_companies(
-        db,
-        current_user,
+        db=db,
+        current_user=current_user,
+        page=page,
+        limit=limit,
+        search=search,
     )
 
 
@@ -65,5 +73,20 @@ def edit_company(
         db,
         company_id,
         company,
+        current_user,
+    )
+
+
+@router.delete(
+    "/{company_id}",
+)
+def remove_company(
+    company_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return delete_company(
+        db,
+        company_id,
         current_user,
     )

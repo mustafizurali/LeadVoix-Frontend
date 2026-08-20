@@ -32,7 +32,6 @@ app.include_router(lead_router)
 app.include_router(company_router)
 app.include_router(deal_router)
 app.include_router(dashboard_router)
-
 @app.get("/")
 def root():
     return {"message": "LeadVoix OS API is running"}

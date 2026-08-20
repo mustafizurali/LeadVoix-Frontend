@@ -1,56 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { updateLead } from "../api/leadApi";
-import {
-  Lead,
-  UpdateLeadPayload,
-} from "../types/lead.types";
+import { createContact } from "../api/contactApi";
+import { CreateContactPayload } from "../types/contact.types";
+import ContactForm from "./ContactForm";
 
-import LeadForm from "./LeadForm";
-
-interface EditLeadModalProps {
+interface CreateContactModalProps {
   open: boolean;
   onClose: () => void;
-  lead: Lead | null;
 }
 
-export default function EditLeadModal({
+export default function CreateContactModal({
   open,
   onClose,
-  lead,
-}: EditLeadModalProps) {
+}: CreateContactModalProps) {
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState<UpdateLeadPayload>({
+  const [form, setForm] = useState<CreateContactPayload>({
     first_name: "",
     last_name: "",
     email: "",
     phone: "",
     company: "",
-    source: "",
-    notes: "",
-    status: "",
   });
-
-  useEffect(() => {
-    if (lead) {
-      setForm({
-        first_name: lead.first_name,
-        last_name: lead.last_name ?? "",
-        email: lead.email ?? "",
-        phone: lead.phone ?? "",
-        company: lead.company ?? "",
-        source: lead.source ?? "",
-        notes: lead.notes ?? "",
-        status: lead.status ?? "",
-      });
-    }
-  }, [lead]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -63,10 +39,18 @@ export default function EditLeadModal({
     }));
   };
 
-  const handleSubmit = async () => {
-    if (!lead) return;
+  const resetForm = () => {
+    setForm({
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      company: "",
+    });
+  };
 
-    if (!form.first_name?.trim()) {
+  const handleSubmit = async () => {
+    if (!form.first_name.trim()) {
       alert("First Name is required");
       return;
     }
@@ -74,40 +58,40 @@ export default function EditLeadModal({
     try {
       setLoading(true);
 
-      const payload: UpdateLeadPayload = {
-        first_name: form.first_name.trim(),
+      const payload = {
+        ...form,
         last_name: form.last_name?.trim() || undefined,
         email: form.email?.trim() || undefined,
         phone: form.phone?.trim() || undefined,
         company: form.company?.trim() || undefined,
-        source: form.source?.trim() || undefined,
-        notes: form.notes?.trim() || undefined,
-        status: form.status?.trim() || undefined,
       };
 
-      await updateLead(lead.id, payload);
+      await createContact(payload);
 
       await queryClient.invalidateQueries({
-        queryKey: ["leads"],
+        queryKey: ["contacts"],
       });
+
+      resetForm();
 
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Failed to update lead");
+      alert("Failed to create contact");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!open || !lead) return null;
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-xl">
+
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-3xl font-bold">
-            Edit Lead
+            Create New Contact
           </h2>
 
           <button
@@ -118,7 +102,7 @@ export default function EditLeadModal({
           </button>
         </div>
 
-        <LeadForm
+        <ContactForm
           form={form}
           onChange={handleChange}
         />
@@ -136,9 +120,10 @@ export default function EditLeadModal({
             disabled={loading}
             className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Updating..." : "Update Lead"}
+            {loading ? "Creating..." : "Create Contact"}
           </button>
         </div>
+
       </div>
     </div>
   );

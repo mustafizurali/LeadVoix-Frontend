@@ -3,54 +3,51 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { updateLead } from "../api/leadApi";
+import { updateContact } from "../api/contactApi";
 import {
-  Lead,
-  UpdateLeadPayload,
-} from "../types/lead.types";
+  CreateContactPayload,
+  Contact,
+  UpdateContactPayload,
+} from "../types/contact.types";
 
-import LeadForm from "./LeadForm";
+import ContactForm from "./ContactForm";
 
-interface EditLeadModalProps {
+interface EditContactModalProps {
   open: boolean;
   onClose: () => void;
-  lead: Lead | null;
+  contact: Contact | null;
 }
 
-export default function EditLeadModal({
+export default function EditContactModal({
   open,
   onClose,
-  lead,
-}: EditLeadModalProps) {
+  contact,
+}: EditContactModalProps) {
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
 
-  const [form, setForm] = useState<UpdateLeadPayload>({
+  const [form, setForm] = useState<UpdateContactPayload>({
     first_name: "",
     last_name: "",
     email: "",
     phone: "",
     company: "",
-    source: "",
-    notes: "",
     status: "",
   });
 
   useEffect(() => {
-    if (lead) {
+    if (contact) {
       setForm({
-        first_name: lead.first_name,
-        last_name: lead.last_name ?? "",
-        email: lead.email ?? "",
-        phone: lead.phone ?? "",
-        company: lead.company ?? "",
-        source: lead.source ?? "",
-        notes: lead.notes ?? "",
-        status: lead.status ?? "",
+        first_name: contact.first_name,
+        last_name: contact.last_name ?? "",
+        email: contact.email ?? "",
+        phone: contact.phone ?? "",
+        company: contact.company ?? "",
+        status: contact.status,
       });
     }
-  }, [lead]);
+  }, [contact]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -64,7 +61,7 @@ export default function EditLeadModal({
   };
 
   const handleSubmit = async () => {
-    if (!lead) return;
+    if (!contact) return;
 
     if (!form.first_name?.trim()) {
       alert("First Name is required");
@@ -74,40 +71,39 @@ export default function EditLeadModal({
     try {
       setLoading(true);
 
-      const payload: UpdateLeadPayload = {
+      const payload: UpdateContactPayload = {
         first_name: form.first_name.trim(),
         last_name: form.last_name?.trim() || undefined,
         email: form.email?.trim() || undefined,
         phone: form.phone?.trim() || undefined,
         company: form.company?.trim() || undefined,
-        source: form.source?.trim() || undefined,
-        notes: form.notes?.trim() || undefined,
         status: form.status?.trim() || undefined,
       };
 
-      await updateLead(lead.id, payload);
+      await updateContact(contact.id, payload);
 
       await queryClient.invalidateQueries({
-        queryKey: ["leads"],
+        queryKey: ["contacts"],
       });
 
       onClose();
     } catch (error) {
       console.error(error);
-      alert("Failed to update lead");
+      alert("Failed to update contact");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!open || !lead) return null;
+  if (!open || !contact) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-xl">
+
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-3xl font-bold">
-            Edit Lead
+            Edit Contact
           </h2>
 
           <button
@@ -118,7 +114,7 @@ export default function EditLeadModal({
           </button>
         </div>
 
-        <LeadForm
+        <ContactForm
           form={form}
           onChange={handleChange}
         />
@@ -136,9 +132,10 @@ export default function EditLeadModal({
             disabled={loading}
             className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Updating..." : "Update Lead"}
+            {loading ? "Updating..." : "Update Contact"}
           </button>
         </div>
+
       </div>
     </div>
   );
