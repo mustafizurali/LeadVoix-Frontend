@@ -16,7 +16,11 @@ from backend.app.db.database import Base
 class PipelineStage(Base):
     __tablename__ = "pipeline_stages"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
 
     pipeline_id = Column(
         Integer,
@@ -59,11 +63,10 @@ class PipelineStage(Base):
     )
 
     sla_days = Column(
-    Integer,
-    nullable=False,
-    default=0,
+        Integer,
+        nullable=False,
+        default=0,
     )
-
 
     created_at = Column(
         DateTime(timezone=True),
@@ -84,6 +87,6 @@ class PipelineStage(Base):
     )
 
     deals = relationship(
-    "Deal",
-    back_populates="stage",
+        "Deal",
+        back_populates="stage",
     )

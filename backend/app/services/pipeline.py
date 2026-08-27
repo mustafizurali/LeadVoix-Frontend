@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from backend.app.models.pipeline import Pipeline
@@ -12,15 +13,34 @@ from backend.app.schemas.pipeline import (
 )
 
 
+def get_user_organization_id(
+    current_user: User,
+) -> int:
+    if current_user.organization_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="User is not assigned to any organization",
+        )
+
+    return current_user.organization_id
+
+
 def create_pipeline(
     db: Session,
     pipeline: PipelineCreate,
     current_user: User,
 ):
-    if current_user.organization_id is None:
-        raise HTTPException(
-            status_code=400,
-            detail="User is not assigned to any organization"
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
+    if pipeline.is_default:
+        db.query(Pipeline).filter(
+            Pipeline.organization_id == organization_id,
+            Pipeline.is_default == True,
+        ).update(
+            {"is_default": False},
+            synchronize_session=False,
         )
 
     db_pipeline = Pipeline(
@@ -29,7 +49,7 @@ def create_pipeline(
         color=pipeline.color,
         is_default=pipeline.is_default,
         is_active=pipeline.is_active,
-        organization_id=current_user.organization_id,
+        organization_id=organization_id,
     )
 
     db.add(db_pipeline)
@@ -42,21 +62,51 @@ def create_pipeline(
 def get_pipelines(
     db: Session,
     current_user: User,
+    page: int = 1,
+    limit: int = 10,
+    search: str | None = None,
 ):
-    if current_user.organization_id is None:
-        raise HTTPException(
-            status_code=400,
-            detail="User is not assigned to any organization"
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
+    query = db.query(Pipeline).filter(
+        Pipeline.organization_id == organization_id
+    )
+
+    if search:
+        query = query.filter(
+            or_(
+                Pipeline.name.ilike(f"%{search}%"),
+                Pipeline.description.ilike(f"%{search}%"),
+            )
         )
 
-    return (
-        db.query(Pipeline)
-        .filter(
-            Pipeline.organization_id == current_user.organization_id
-        )
+    total = query.count()
+
+    offset = (page - 1) * limit
+
+    pipelines = (
+        query
         .order_by(Pipeline.created_at.desc())
+        .offset(offset)
+        .limit(limit)
         .all()
     )
+
+    total_pages = (
+        (total + limit - 1) // limit
+        if total > 0
+        else 0
+    )
+
+    return {
+        "items": pipelines,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+    }
 
 
 def update_pipeline(
@@ -65,11 +115,15 @@ def update_pipeline(
     pipeline: PipelineUpdate,
     current_user: User,
 ):
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
     db_pipeline = (
         db.query(Pipeline)
         .filter(
             Pipeline.id == pipeline_id,
-            Pipeline.organization_id == current_user.organization_id,
+            Pipeline.organization_id == organization_id,
         )
         .first()
     )
@@ -77,10 +131,22 @@ def update_pipeline(
     if not db_pipeline:
         raise HTTPException(
             status_code=404,
-            detail="Pipeline not found"
+            detail="Pipeline not found",
         )
 
-    update_data = pipeline.model_dump(exclude_unset=True)
+    update_data = pipeline.model_dump(
+        exclude_unset=True
+    )
+
+    if update_data.get("is_default") is True:
+        db.query(Pipeline).filter(
+            Pipeline.organization_id == organization_id,
+            Pipeline.id != pipeline_id,
+            Pipeline.is_default == True,
+        ).update(
+            {"is_default": False},
+            synchronize_session=False,
+        )
 
     for key, value in update_data.items():
         setattr(db_pipeline, key, value)
@@ -91,22 +157,20 @@ def update_pipeline(
     return db_pipeline
 
 
-def create_stage(
+def delete_pipeline(
     db: Session,
-    stage: PipelineStageCreate,
+    pipeline_id: int,
     current_user: User,
 ):
-    if current_user.organization_id is None:
-        raise HTTPException(
-            status_code=400,
-            detail="User is not assigned to any organization"
-        )
+    organization_id = get_user_organization_id(
+        current_user
+    )
 
     db_pipeline = (
         db.query(Pipeline)
         .filter(
-            Pipeline.id == stage.pipeline_id,
-            Pipeline.organization_id == current_user.organization_id,
+            Pipeline.id == pipeline_id,
+            Pipeline.organization_id == organization_id,
         )
         .first()
     )
@@ -114,11 +178,59 @@ def create_stage(
     if not db_pipeline:
         raise HTTPException(
             status_code=404,
-            detail="Pipeline not found"
+            detail="Pipeline not found",
+        )
+
+    db.delete(db_pipeline)
+    db.commit()
+
+    return {
+        "message": "Pipeline deleted successfully"
+    }
+
+
+def create_stage(
+    db: Session,
+    pipeline_id: int,
+    stage: PipelineStageCreate,
+    current_user: User,
+):
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
+    db_pipeline = (
+        db.query(Pipeline)
+        .filter(
+            Pipeline.id == pipeline_id,
+            Pipeline.organization_id == organization_id,
+        )
+        .first()
+    )
+
+    if not db_pipeline:
+        raise HTTPException(
+            status_code=404,
+            detail="Pipeline not found",
+        )
+
+    existing_position = (
+        db.query(PipelineStage)
+        .filter(
+            PipelineStage.pipeline_id == pipeline_id,
+            PipelineStage.position == stage.position,
+        )
+        .first()
+    )
+
+    if existing_position:
+        raise HTTPException(
+            status_code=400,
+            detail="A stage already exists at this position",
         )
 
     db_stage = PipelineStage(
-        pipeline_id=stage.pipeline_id,
+        pipeline_id=pipeline_id,
         name=stage.name,
         position=stage.position,
         color=stage.color,
@@ -137,29 +249,59 @@ def create_stage(
 
 def get_stages(
     db: Session,
+    pipeline_id: int,
     current_user: User,
+    page: int = 1,
+    limit: int = 50,
 ):
-    print("========== DEBUG ==========")
-    print("ID:", current_user.id)
-    print("EMAIL:", current_user.email)
-    print("ORG:", current_user.organization_id)
-    print("===========================")
-    
-    if current_user.organization_id is None:
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
+    db_pipeline = (
+        db.query(Pipeline)
+        .filter(
+            Pipeline.id == pipeline_id,
+            Pipeline.organization_id == organization_id,
+        )
+        .first()
+    )
+
+    if not db_pipeline:
         raise HTTPException(
-            status_code=400,
-            detail="User is not assigned to any organization"
+            status_code=404,
+            detail="Pipeline not found",
         )
 
-    return (
-        db.query(PipelineStage)
-        .join(Pipeline)
-        .filter(
-            Pipeline.organization_id == current_user.organization_id
-        )
-        .order_by(PipelineStage.position)
+    query = db.query(PipelineStage).filter(
+        PipelineStage.pipeline_id == pipeline_id
+    )
+
+    total = query.count()
+
+    offset = (page - 1) * limit
+
+    stages = (
+        query
+        .order_by(PipelineStage.position.asc())
+        .offset(offset)
+        .limit(limit)
         .all()
     )
+
+    total_pages = (
+        (total + limit - 1) // limit
+        if total > 0
+        else 0
+    )
+
+    return {
+        "items": stages,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+    }
 
 
 def update_stage(
@@ -168,12 +310,16 @@ def update_stage(
     stage: PipelineStageUpdate,
     current_user: User,
 ):
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
     db_stage = (
         db.query(PipelineStage)
         .join(Pipeline)
         .filter(
             PipelineStage.id == stage_id,
-            Pipeline.organization_id == current_user.organization_id,
+            Pipeline.organization_id == organization_id,
         )
         .first()
     )
@@ -181,25 +327,30 @@ def update_stage(
     if not db_stage:
         raise HTTPException(
             status_code=404,
-            detail="Pipeline stage not found"
+            detail="Pipeline stage not found",
         )
 
-    update_data = stage.model_dump(exclude_unset=True)
+    update_data = stage.model_dump(
+        exclude_unset=True
+    )
 
-    if "pipeline_id" in update_data:
-        db_pipeline = (
-            db.query(Pipeline)
+    if "position" in update_data:
+        existing_position = (
+            db.query(PipelineStage)
             .filter(
-                Pipeline.id == update_data["pipeline_id"],
-                Pipeline.organization_id == current_user.organization_id,
+                PipelineStage.pipeline_id
+                == db_stage.pipeline_id,
+                PipelineStage.position
+                == update_data["position"],
+                PipelineStage.id != stage_id,
             )
             .first()
         )
 
-        if not db_pipeline:
+        if existing_position:
             raise HTTPException(
-                status_code=404,
-                detail="Pipeline not found"
+                status_code=400,
+                detail="A stage already exists at this position",
             )
 
     for key, value in update_data.items():
@@ -209,3 +360,36 @@ def update_stage(
     db.refresh(db_stage)
 
     return db_stage
+
+
+def delete_stage(
+    db: Session,
+    stage_id: int,
+    current_user: User,
+):
+    organization_id = get_user_organization_id(
+        current_user
+    )
+
+    db_stage = (
+        db.query(PipelineStage)
+        .join(Pipeline)
+        .filter(
+            PipelineStage.id == stage_id,
+            Pipeline.organization_id == organization_id,
+        )
+        .first()
+    )
+
+    if not db_stage:
+        raise HTTPException(
+            status_code=404,
+            detail="Pipeline stage not found",
+        )
+
+    db.delete(db_stage)
+    db.commit()
+
+    return {
+        "message": "Pipeline stage deleted successfully"
+    }

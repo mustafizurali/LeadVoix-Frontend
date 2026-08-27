@@ -49,6 +49,16 @@ class Organization(Base):
     back_populates="organization",
     )
 
+    agents = relationship(
+        "Agent",
+        back_populates="organization",
+    )
+
+    agent_calls = relationship(
+    "AgentCall",
+    back_populates="organization",
+    )
+
     tasks = relationship(
     "Task",
     back_populates="organization",

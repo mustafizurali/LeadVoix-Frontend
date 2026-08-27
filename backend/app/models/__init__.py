@@ -7,3 +7,10 @@ from .pipeline import Pipeline
 from .pipeline_stage import PipelineStage
 from .deal import Deal
 from .task import Task
+from .agent import Agent
+from .agent_knowledge import AgentKnowledge
+from .agent_call import AgentCall
+from .agent_call_transcript import AgentCallTranscript
+from .agent_call_summary import AgentCallSummary
+from .agent_call_intelligence import AgentCallIntelligence
+from .follow_up_task import FollowUpTask

@@ -9,6 +9,14 @@ from backend.app.api.deal import router as deal_router
 from backend.app.api.task import router as task_router
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api.dashboard import router as dashboard_router
+from backend.app.api import agent
+from backend.app.api import agent_knowledge
+from backend.app.api import agent_call
+from backend.app.api import agent_call_transcript
+from backend.app.api import agent_call_summary
+from backend.app.api import agent_call_analysis
+from backend.app.api import agent_call_intelligence
+from backend.app.api import follow_up_task
 
 
 app = FastAPI(title="LeadVoix OS API")
@@ -32,6 +40,18 @@ app.include_router(lead_router)
 app.include_router(company_router)
 app.include_router(deal_router)
 app.include_router(dashboard_router)
+app.include_router(agent.router)
+app.include_router(agent_knowledge.router)
+app.include_router(agent_call_transcript.router)
+app.include_router(agent_call_summary.router)
+app.include_router(agent_call_analysis.router)
+app.include_router(
+    agent_call_intelligence.router
+)
+app.include_router(
+    follow_up_task.router
+)
+app.include_router(agent_call.router)
 @app.get("/")
 def root():
     return {"message": "LeadVoix OS API is running"}

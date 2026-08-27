@@ -16,7 +16,11 @@ from backend.app.db.database import Base
 class Pipeline(Base):
     __tablename__ = "pipelines"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
 
     name = Column(
         String,
@@ -31,7 +35,6 @@ class Pipeline(Base):
     color = Column(
         String,
         nullable=True,
-        default="#2563EB",
     )
 
     is_default = Column(
@@ -74,9 +77,10 @@ class Pipeline(Base):
         "PipelineStage",
         back_populates="pipeline",
         cascade="all, delete-orphan",
+        order_by="PipelineStage.position",
     )
 
     deals = relationship(
-    "Deal",
-    back_populates="pipeline",
+     "Deal",
+     back_populates="pipeline",
     )
