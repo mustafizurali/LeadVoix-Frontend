@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useLeads } from "../hooks/useLeads";
 import { Lead } from "../types/lead.types";
 
@@ -130,7 +132,15 @@ export default function LeadTable({
 
                 <td className="px-6 py-4">
                   <div className="flex justify-center gap-2">
+                    <Link
+                      href={`/leads/${lead.id}`}
+                      className="rounded-lg bg-slate-900 px-3 py-1 text-sm text-white transition hover:bg-slate-700"
+                    >
+                      View
+                    </Link>
+
                     <button
+                      type="button"
                       onClick={() => onEditLead(lead)}
                       className="rounded-lg bg-blue-600 px-3 py-1 text-sm text-white transition hover:bg-blue-700"
                     >
@@ -138,6 +148,7 @@ export default function LeadTable({
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => onDeleteLead(lead)}
                       className="rounded-lg bg-red-600 px-3 py-1 text-sm text-white transition hover:bg-red-700"
                     >

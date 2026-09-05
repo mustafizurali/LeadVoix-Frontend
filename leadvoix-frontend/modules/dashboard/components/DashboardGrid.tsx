@@ -1,12 +1,21 @@
 "use client";
+
 import StatCard from "./StatCard";
 import { useDashboard } from "../hooks/useDashboard";
 
 export default function DashboardGrid() {
-  const { data, isLoading } = useDashboard();
+  const { data, isLoading, isError } = useDashboard();
 
   if (isLoading) {
     return <p>Loading dashboard...</p>;
+  }
+
+  if (isError) {
+    return (
+      <p className="text-red-600">
+        Failed to load dashboard statistics.
+      </p>
+    );
   }
 
   return (
@@ -19,20 +28,20 @@ export default function DashboardGrid() {
 
       <StatCard
         title="Companies"
-        value={data?.companies ?? 0}
-        subtitle="Active Companies"
+        value={data?.total_companies ?? 0}
+        subtitle="All Companies"
       />
 
       <StatCard
         title="Deals"
-        value={data?.deals ?? 0}
-        subtitle="Open Deals"
+        value={data?.total_deals ?? 0}
+        subtitle="All Deals"
       />
 
       <StatCard
         title="Tasks"
-        value={data?.tasks ?? 0}
-        subtitle="Pending Tasks"
+        value={data?.total_tasks ?? 0}
+        subtitle="All Tasks"
       />
     </div>
   );

@@ -25,12 +25,10 @@ export default function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-  
-  const onSubmit = (data: LoginFormData) => {
-   console.log("Submitting:", data);
-   loginMutation.mutate(data);
-  };
 
+  const onSubmit = (data: LoginFormData) => {
+    loginMutation.mutate(data);
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100">
@@ -51,7 +49,7 @@ export default function LoginForm() {
               />
 
               {errors.email && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="mt-1 text-sm text-red-500">
                   {errors.email.message}
                 </p>
               )}
@@ -65,26 +63,18 @@ export default function LoginForm() {
               />
 
               {errors.password && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="mt-1 text-sm text-red-500">
                   {errors.password.message}
                 </p>
               )}
             </div>
 
-           
-           <button
-           type="submit"
-           className="w-full rounded-md bg-black py-2 text-white"
->
-           Login
-</button>
-              
-              
-          
-          
-                
-                
-            
+            <button
+              type="submit"
+              className="w-full rounded-md bg-black py-2 text-white"
+            >
+              Login
+            </button>
           </form>
         </CardContent>
       </Card>

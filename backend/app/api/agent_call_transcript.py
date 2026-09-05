@@ -10,12 +10,17 @@ from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
 from backend.app.models.agent_call import AgentCall
+from backend.app.models.user import User
+from backend.app.utils.dependencies import get_current_user
+
 from backend.app.services.agent_call import get_agent_call
+
 from backend.app.schemas.agent_call_transcript import (
     AgentCallTranscriptCreate,
     AgentCallTranscriptResponse,
     AgentCallTranscriptUpdate,
 )
+
 from backend.app.services.agent_call_transcript import (
     create_agent_call_transcript,
     get_agent_call_transcript,
@@ -41,16 +46,19 @@ def create_transcript(
     call_id: int,
     transcript_data: AgentCallTranscriptCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    agent_call = get_agent_call(
-        db,
-        call_id,
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
     )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -71,16 +79,19 @@ def get_transcripts(
     agent_id: int,
     call_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    agent_call = get_agent_call(
-        db,
-        call_id,
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
     )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -101,6 +112,7 @@ def get_transcript(
     call_id: int,
     transcript_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     transcript = get_agent_call_transcript(
         db,
@@ -116,12 +128,17 @@ def get_transcript(
             detail="Transcript not found",
         )
 
-    agent_call = get_agent_call(db, call_id)
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -140,6 +157,7 @@ def update_transcript(
     transcript_id: int,
     transcript_data: AgentCallTranscriptUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     transcript = get_agent_call_transcript(
         db,
@@ -155,12 +173,17 @@ def update_transcript(
             detail="Transcript not found",
         )
 
-    agent_call = get_agent_call(db, call_id)
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -182,6 +205,7 @@ def delete_transcript(
     call_id: int,
     transcript_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     transcript = get_agent_call_transcript(
         db,
@@ -197,12 +221,17 @@ def delete_transcript(
             detail="Transcript not found",
         )
 
-    agent_call = get_agent_call(db, call_id)
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -212,3 +241,5 @@ def delete_transcript(
         db,
         transcript,
     )
+
+    return None

@@ -54,3 +54,13 @@ export const deleteLead = async (
 ): Promise<void> => {
   await api.delete(`/leads/${id}`);
 };
+
+export const getLeadCalls = async (
+  leadId: number
+) => {
+  const response = await api.get(
+    `/leads/${leadId}/calls`
+  );
+
+  return response.data;
+};

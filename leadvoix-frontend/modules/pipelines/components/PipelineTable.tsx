@@ -9,11 +9,13 @@ import PipelineStageList from "./PipelineStageList";
 interface PipelineTableProps {
   search: string;
   onEditPipeline: (pipeline: Pipeline) => void;
+  onDeletePipeline: (pipeline: Pipeline) => void;
 }
 
 export default function PipelineTable({
   search,
   onEditPipeline,
+  onDeletePipeline,
 }: PipelineTableProps) {
   const [expandedPipelineId, setExpandedPipelineId] = useState<number | null>(
     null
@@ -21,13 +23,9 @@ export default function PipelineTable({
 
   const { data, isLoading, error } = usePipelines();
 
+  const pipelines: Pipeline[] = data?.items ?? [];
 
-
-    const pipelines: Pipeline[] = data?.items ?? [];
-
-    const normalizedSearch = search.trim().toLowerCase();
-
-
+  const normalizedSearch = search.trim().toLowerCase();
 
   const filteredPipelines = pipelines.filter((pipeline) => {
     if (!normalizedSearch) {
@@ -173,13 +171,21 @@ export default function PipelineTable({
                     </td>
 
                     <td className="px-6 py-4">
-                      <div className="flex justify-center">
+                      <div className="flex justify-center gap-2">
                         <button
                           type="button"
                           onClick={() => onEditPipeline(pipeline)}
                           className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
                         >
                           Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => onDeletePipeline(pipeline)}
+                          className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-700"
+                        >
+                          Delete
                         </button>
                       </div>
                     </td>

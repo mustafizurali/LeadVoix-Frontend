@@ -5,12 +5,15 @@ from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
 from backend.app.models.agent import Agent
+from backend.app.models.user import User
+from backend.app.utils.dependencies import get_current_user
 
 from backend.app.schemas.agent_call import (
     AgentCallCreate,
     AgentCallResponse,
     AgentCallUpdate,
 )
+
 from backend.app.services.agent_call import (
     create_agent_call,
     get_agent_calls,
@@ -31,6 +34,10 @@ router = APIRouter(
 )
 
 
+# ============================================================
+# CREATE AGENT CALL
+# ============================================================
+
 @router.post(
     "/{agent_id}/calls",
     response_model=AgentCallResponse,
@@ -40,10 +47,14 @@ def create_call(
     agent_id: int,
     call_data: AgentCallCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     agent = (
         db.query(Agent)
-        .filter(Agent.id == agent_id)
+        .filter(
+            Agent.id == agent_id,
+            Agent.organization_id == current_user.organization_id,
+        )
         .first()
     )
 
@@ -60,6 +71,11 @@ def create_call(
         call_data,
     )
 
+
+# ============================================================
+# INITIATE AGENT CALL
+# ============================================================
+
 @router.post(
     "/{agent_id}/calls/{call_id}/initiate",
     response_model=AgentCallResponse,
@@ -70,10 +86,14 @@ def initiate_call(
     to_number: str,
     from_number: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     agent = (
         db.query(Agent)
-        .filter(Agent.id == agent_id)
+        .filter(
+            Agent.id == agent_id,
+            Agent.organization_id == current_user.organization_id,
+        )
         .first()
     )
 
@@ -91,6 +111,7 @@ def initiate_call(
     if (
         not agent_call
         or agent_call.agent_id != agent_id
+        or agent_call.organization_id != current_user.organization_id
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -105,6 +126,11 @@ def initiate_call(
         from_number=from_number,
     )
 
+
+# ============================================================
+# END AGENT CALL
+# ============================================================
+
 @router.post(
     "/{agent_id}/calls/{call_id}/end",
     response_model=AgentCallResponse,
@@ -113,6 +139,7 @@ def end_call(
     agent_id: int,
     call_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     agent_call = get_agent_call(
         db,
@@ -122,6 +149,7 @@ def end_call(
     if (
         not agent_call
         or agent_call.agent_id != agent_id
+        or agent_call.organization_id != current_user.organization_id
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -139,6 +167,11 @@ def end_call(
         agent_call=agent_call,
     )
 
+
+# ============================================================
+# GET ALL CALLS FOR AGENT
+# ============================================================
+
 @router.get(
     "/{agent_id}/calls",
     response_model=List[AgentCallResponse],
@@ -146,12 +179,32 @@ def end_call(
 def get_calls(
     agent_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    agent = (
+        db.query(Agent)
+        .filter(
+            Agent.id == agent_id,
+            Agent.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
+
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agent not found",
+        )
+
     return get_agent_calls(
         db,
         agent_id,
     )
 
+
+# ============================================================
+# GET SINGLE AGENT CALL
+# ============================================================
 
 @router.get(
     "/{agent_id}/calls/{call_id}",
@@ -161,6 +214,7 @@ def get_call(
     agent_id: int,
     call_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     agent_call = get_agent_call(
         db,
@@ -170,6 +224,7 @@ def get_call(
     if (
         not agent_call
         or agent_call.agent_id != agent_id
+        or agent_call.organization_id != current_user.organization_id
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -178,6 +233,10 @@ def get_call(
 
     return agent_call
 
+
+# ============================================================
+# UPDATE AGENT CALL
+# ============================================================
 
 @router.put(
     "/{agent_id}/calls/{call_id}",
@@ -188,6 +247,7 @@ def update_call(
     call_id: int,
     call_data: AgentCallUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     agent_call = get_agent_call(
         db,
@@ -197,6 +257,7 @@ def update_call(
     if (
         not agent_call
         or agent_call.agent_id != agent_id
+        or agent_call.organization_id != current_user.organization_id
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -210,6 +271,10 @@ def update_call(
     )
 
 
+# ============================================================
+# DELETE AGENT CALL
+# ============================================================
+
 @router.delete(
     "/{agent_id}/calls/{call_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -218,6 +283,7 @@ def delete_call(
     agent_id: int,
     call_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     agent_call = get_agent_call(
         db,
@@ -227,6 +293,7 @@ def delete_call(
     if (
         not agent_call
         or agent_call.agent_id != agent_id
+        or agent_call.organization_id != current_user.organization_id
     ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

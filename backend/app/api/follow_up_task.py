@@ -10,10 +10,9 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
-
-from backend.app.services.agent_call import (
-    get_agent_call,
-)
+from backend.app.models.agent_call import AgentCall
+from backend.app.models.user import User
+from backend.app.utils.dependencies import get_current_user
 
 from backend.app.services.follow_up_task import (
     create_follow_up_task,
@@ -45,16 +44,19 @@ def create_task(
     call_id: int,
     task_data: FollowUpTaskCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    agent_call = get_agent_call(
-        db,
-        call_id,
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
     )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -75,16 +77,19 @@ def get_tasks(
     agent_id: int,
     call_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    agent_call = get_agent_call(
-        db,
-        call_id,
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
     )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
@@ -106,16 +111,19 @@ def update_task(
     task_id: int,
     task_data: FollowUpTaskUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    agent_call = get_agent_call(
-        db,
-        call_id,
+    agent_call = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id == current_user.organization_id,
+        )
+        .first()
     )
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
+    if not agent_call:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",

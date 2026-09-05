@@ -1,26 +1,6 @@
 "use client";
-export default function ActivityFeed() {
-  const activities = [
-    {
-      id: 1,
-      title: "New lead added",
-      description: "John Doe from Tesla",
-      time: "5 minutes ago",
-    },
-    {
-      id: 2,
-      title: "Deal moved",
-      description: "Amazon Deal → Proposal",
-      time: "20 minutes ago",
-    },
-    {
-      id: 3,
-      title: "Task completed",
-      description: "Follow up with Google",
-      time: "1 hour ago",
-    },
-  ];
 
+export default function ActivityFeed() {
   return (
     <div className="rounded-xl border bg-white shadow-sm">
       <div className="border-b p-6">
@@ -29,22 +9,16 @@ export default function ActivityFeed() {
         </h2>
       </div>
 
-      <div className="divide-y">
-        {activities.map((activity) => (
-          <div key={activity.id} className="p-5">
-            <h3 className="font-semibold">
-              {activity.title}
-            </h3>
+      <div className="p-6">
+        <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
+          <p className="font-medium text-slate-700">
+            No recent activity
+          </p>
 
-            <p className="text-sm text-slate-500 mt-1">
-              {activity.description}
-            </p>
-
-            <span className="text-xs text-slate-400">
-              {activity.time}
-            </span>
-          </div>
-        ))}
+          <p className="mt-1 text-sm text-slate-500">
+            Recent CRM activity will appear here.
+          </p>
+        </div>
       </div>
     </div>
   );

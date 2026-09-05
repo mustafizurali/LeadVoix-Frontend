@@ -2,6 +2,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from backend.app.models.user import User
+from backend.app.utils.dependencies import get_current_user
 
 from backend.app.db.database import get_db
 from backend.app.schemas.agent import (
@@ -25,10 +27,10 @@ router = APIRouter(
 def create_agent(
     agent_data: AgentCreate,
     db: Session = Depends(get_db),
+     current_user: User = Depends(get_current_user),
 ):
-    organization_id = 1
-
-    return agent_service.create_agent(
+      organization_id = current_user.organization_id
+      return agent_service.create_agent(
         db=db,
         agent_data=agent_data,
         organization_id=organization_id,
@@ -41,10 +43,10 @@ def create_agent(
 )
 def get_agents(
     db: Session = Depends(get_db),
+      current_user: User = Depends(get_current_user),
 ):
-    organization_id = 1
-
-    return agent_service.get_agents(
+     organization_id = current_user.organization_id
+     return agent_service.get_agents(
         db=db,
         organization_id=organization_id,
     )
@@ -57,22 +59,20 @@ def get_agents(
 def get_agent(
     agent_id: int,
     db: Session = Depends(get_db),
+     current_user: User = Depends(get_current_user),
 ):
-    organization_id = 1
-
-    agent = agent_service.get_agent_by_id(
+      organization_id = current_user.organization_id
+      agent = agent_service.get_agent_by_id(
         db=db,
         agent_id=agent_id,
         organization_id=organization_id,
     )
-
-    if not agent:
+      if not agent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent not found",
         )
-
-    return agent
+      return agent
 
 
 @router.put(
@@ -83,22 +83,20 @@ def update_agent(
     agent_id: int,
     agent_data: AgentUpdate,
     db: Session = Depends(get_db),
+       current_user: User = Depends(get_current_user),
 ):
-    organization_id = 1
-
-    agent = agent_service.get_agent_by_id(
+     organization_id = current_user.organization_id
+     agent = agent_service.get_agent_by_id(
         db=db,
         agent_id=agent_id,
         organization_id=organization_id,
     )
-
-    if not agent:
+     if not agent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent not found",
         )
-
-    return agent_service.update_agent(
+     return agent_service.update_agent(
         db=db,
         agent=agent,
         agent_data=agent_data,
@@ -112,8 +110,9 @@ def update_agent(
 def delete_agent(
     agent_id: int,
     db: Session = Depends(get_db),
+     current_user: User = Depends(get_current_user),
 ):
-    organization_id = 1
+    organization_id = current_user.organization_id
 
     agent = agent_service.get_agent_by_id(
         db=db,

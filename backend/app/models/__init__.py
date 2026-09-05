@@ -14,3 +14,4 @@ from .agent_call_transcript import AgentCallTranscript
 from .agent_call_summary import AgentCallSummary
 from .agent_call_intelligence import AgentCallIntelligence
 from .follow_up_task import FollowUpTask
+from .demo_request import DemoRequest

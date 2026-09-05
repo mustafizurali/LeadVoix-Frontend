@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 from backend.app.db.database import get_db
 
 from backend.app.models.lead import Lead
+from backend.app.models.agent_call import AgentCall
+from backend.app.models.user import User
+from backend.app.utils.dependencies import get_current_user
 
 from backend.app.services.agent_call import (
     get_agent_call,
@@ -248,6 +251,7 @@ def analyze_call_intelligence_endpoint(
     agent_id: int,
     call_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     print("\n")
@@ -269,23 +273,23 @@ def analyze_call_intelligence_endpoint(
     # GET AGENT CALL
     # ========================================================
 
-    agent_call = get_agent_call(
-        db,
-        call_id,
+    agent_call = (
+    db.query(AgentCall)
+    .filter(
+        AgentCall.id == call_id,
+        AgentCall.agent_id == agent_id,
+        AgentCall.organization_id == current_user.organization_id,
     )
+    .first()
+)
 
     # ========================================================
     # VALIDATE AGENT CALL
     # ========================================================
 
-    if (
-        not agent_call
-        or agent_call.agent_id != agent_id
-    ):
-
+    if  not agent_call: 
         print("AGENT CALL NOT FOUND")
-
-        raise HTTPException(
+    raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
         )

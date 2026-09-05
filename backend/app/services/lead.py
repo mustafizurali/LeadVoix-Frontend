@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.models.lead import Lead
 from backend.app.models.user import User
+from backend.app.models.agent_call import AgentCall
 from backend.app.schemas.lead import LeadCreate, LeadUpdate
 from sqlalchemy import or_
 
@@ -194,3 +195,79 @@ def delete_lead(
     return {
         "message": "Lead deleted successfully"
     }
+
+def get_lead_calls(
+    db: Session,
+    lead_id: int,
+    current_user: User,
+):
+    if current_user.organization_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="User is not assigned to any organization",
+        )
+
+    # Get lead belonging to current user's organization
+    lead = (
+        db.query(Lead)
+        .filter(
+            Lead.id == lead_id,
+            Lead.organization_id == current_user.organization_id,
+        )
+        .first()
+    )
+
+    if not lead:
+        raise HTTPException(
+            status_code=404,
+            detail="Lead not found",
+        )
+
+    if not lead.phone:
+        return []
+
+    def normalize_phone(phone: str | None) -> str:
+        if not phone:
+            return ""
+
+        return "".join(
+            char for char in phone
+            if char.isdigit()
+        )
+
+    lead_phone = normalize_phone(lead.phone)
+
+    calls = (
+        db.query(AgentCall)
+        .filter(
+            AgentCall.organization_id
+            == current_user.organization_id
+        )
+        .order_by(AgentCall.created_at.desc())
+        .all()
+    )
+
+    matched_calls = []
+
+    for call in calls:
+        call_phone = normalize_phone(
+            call.caller_phone
+        )
+
+        if not call_phone:
+            continue
+
+        # Exact normalized phone match
+        if call_phone == lead_phone:
+            matched_calls.append(call)
+            continue
+
+        # Fallback for country-code differences
+        if (
+            len(lead_phone) >= 10
+            and len(call_phone) >= 10
+            and lead_phone[-10:] == call_phone[-10:]
+        ):
+            matched_calls.append(call)
+
+    return matched_calls

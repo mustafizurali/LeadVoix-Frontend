@@ -77,3 +77,9 @@ export const updatePipelineStage = async (
 
   return response.data as PipelineStage;
 };
+
+export const deletePipeline = async (
+  id: number
+): Promise<void> => {
+  await api.delete(`/pipelines/${id}`);
+};
