@@ -9,14 +9,6 @@ def automate_pipeline_stage(
     lead_temperature: str,
     customer_intent: str,
 ):
-
-    print("\n========== AUTOMATION RUNNING ==========")
-
-    print("LEAD ID:", lead.id)
-    print("BEFORE STATUS:", lead.status)
-    print("TEMPERATURE:", lead_temperature)
-    print("INTENT:", customer_intent)
-
     # Normalize AI values
     lead_temperature = (
         lead_temperature.lower().strip()
@@ -56,16 +48,8 @@ def automate_pipeline_stage(
 
         lead.status = "cold"
 
-    print("NEW STATUS:", lead.status)
-
     db.commit()
 
-    print("DATABASE COMMITTED")
-
     db.refresh(lead)
-
-    print("FINAL STATUS:", lead.status)
-
-    print("========== AUTOMATION END ==========\n")
 
     return lead

@@ -14,10 +14,6 @@ from backend.app.models.agent_call import AgentCall
 from backend.app.models.user import User
 from backend.app.utils.dependencies import get_current_user
 
-from backend.app.services.agent_call import (
-    get_agent_call,
-)
-
 from backend.app.services.agent_call_analysis import (
     build_transcript_text,
 )
@@ -55,13 +51,11 @@ def normalize_phone(phone: str | None) -> str:
     Normalize phone number.
 
     Examples:
-
     +1 555-000-0002
     +15550000002
     15550000002
 
     All become:
-
     15550000002
     """
 
@@ -83,28 +77,8 @@ def find_matching_lead(
     db: Session,
     agent_call,
 ):
-    print("\n")
-    print("=" * 60)
-    print("STARTING LEAD MATCHING")
-    print("=" * 60)
-
     call_phone = normalize_phone(
         agent_call.caller_phone
-    )
-
-    print(
-        "RAW CALL PHONE:",
-        repr(agent_call.caller_phone),
-    )
-
-    print(
-        "NORMALIZED CALL PHONE:",
-        repr(call_phone),
-    )
-
-    print(
-        "CALL ORGANIZATION ID:",
-        agent_call.organization_id,
     )
 
     # --------------------------------------------------------
@@ -112,13 +86,6 @@ def find_matching_lead(
     # --------------------------------------------------------
 
     if not call_phone:
-
-        print("NO CALL PHONE AVAILABLE")
-
-        print("=" * 60)
-        print("LEAD MATCHING END")
-        print("=" * 60)
-
         return None
 
     # --------------------------------------------------------
@@ -134,11 +101,6 @@ def find_matching_lead(
         .all()
     )
 
-    print(
-        "TOTAL LEADS IN ORGANIZATION:",
-        len(leads),
-    )
-
     # --------------------------------------------------------
     # Compare phone numbers
     # --------------------------------------------------------
@@ -149,43 +111,8 @@ def find_matching_lead(
             lead.phone
         )
 
-        print("\n")
-        print(
-            "CHECKING LEAD:",
-            lead.id,
-        )
-
-        print(
-            "RAW LEAD PHONE:",
-            repr(lead.phone),
-        )
-
-        print(
-            "NORMALIZED LEAD PHONE:",
-            repr(lead_phone),
-        )
-
-        print(
-            "CALL PHONE:",
-            repr(call_phone),
-        )
-
-        print(
-            "LEAD ORGANIZATION:",
-            lead.organization_id,
-        )
-
-        print(
-            "PHONE MATCH:",
-            call_phone == lead_phone,
-        )
-
         # Skip empty phone
-
         if not lead_phone:
-
-            print("LEAD HAS NO PHONE")
-
             continue
 
         # ----------------------------------------------------
@@ -193,47 +120,11 @@ def find_matching_lead(
         # ----------------------------------------------------
 
         if call_phone == lead_phone:
-
-            print("\n")
-            print("=" * 60)
-            print("MATCH FOUND!")
-            print("=" * 60)
-
-            print(
-                "MATCHED LEAD ID:",
-                lead.id,
-            )
-
-            print(
-                "LEAD PHONE:",
-                lead.phone,
-            )
-
-            print(
-                "LEAD STATUS:",
-                lead.status,
-            )
-
-            print("=" * 60)
-            print("LEAD MATCHING END")
-            print("=" * 60)
-
             return lead
-
-        print("NO MATCH WITH THIS LEAD")
 
     # --------------------------------------------------------
     # No matching lead
     # --------------------------------------------------------
-
-    print("\n")
-    print("=" * 60)
-    print("NO LEAD FOUND")
-    print("=" * 60)
-
-    print("=" * 60)
-    print("LEAD MATCHING END")
-    print("=" * 60)
 
     return None
 
@@ -254,57 +145,30 @@ def analyze_call_intelligence_endpoint(
     current_user: User = Depends(get_current_user),
 ):
 
-    print("\n")
-    print("=" * 60)
-    print("CALL INTELLIGENCE START")
-    print("=" * 60)
-
-    print(
-        "AGENT ID:",
-        agent_id,
-    )
-
-    print(
-        "CALL ID:",
-        call_id,
-    )
-
     # ========================================================
     # GET AGENT CALL
     # ========================================================
 
     agent_call = (
-    db.query(AgentCall)
-    .filter(
-        AgentCall.id == call_id,
-        AgentCall.agent_id == agent_id,
-        AgentCall.organization_id == current_user.organization_id,
+        db.query(AgentCall)
+        .filter(
+            AgentCall.id == call_id,
+            AgentCall.agent_id == agent_id,
+            AgentCall.organization_id
+            == current_user.organization_id,
+        )
+        .first()
     )
-    .first()
-)
 
     # ========================================================
     # VALIDATE AGENT CALL
     # ========================================================
 
-    if  not agent_call: 
-        print("AGENT CALL NOT FOUND")
-    raise HTTPException(
+    if not agent_call:
+        raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agent call not found",
         )
-
-    print("AGENT CALL FOUND")
-
-    print(
-        "CALLER PHONE:",
-        agent_call.caller_phone,
-    )
-
-    print(
-        "ORGANIZATION ID:",
-        agent_call.organization_id,
-    )
 
     # ========================================================
     # BUILD TRANSCRIPT
@@ -320,20 +184,10 @@ def analyze_call_intelligence_endpoint(
     # ========================================================
 
     if not transcript_text:
-
-        print("NO TRANSCRIPT AVAILABLE")
-
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No transcript available for this call",
         )
-
-    print("TRANSCRIPT FOUND")
-
-    print(
-        "TRANSCRIPT LENGTH:",
-        len(transcript_text),
-    )
 
     # ========================================================
     # ANALYZE CALL WITH AI
@@ -341,46 +195,6 @@ def analyze_call_intelligence_endpoint(
 
     analysis = analyze_call_intelligence(
         transcript_text,
-    )
-
-    print("\n")
-    print("=" * 60)
-    print("AI ANALYSIS")
-    print("=" * 60)
-
-    print(
-        "SENTIMENT:",
-        analysis.get("sentiment"),
-    )
-
-    print(
-        "LEAD SCORE:",
-        analysis.get("lead_score"),
-    )
-
-    print(
-        "LEAD TEMPERATURE:",
-        analysis.get("lead_temperature"),
-    )
-
-    print(
-        "CUSTOMER INTENT:",
-        analysis.get("customer_intent"),
-    )
-
-    print(
-        "OBJECTIONS:",
-        analysis.get("objections"),
-    )
-
-    print(
-        "BUYING SIGNALS:",
-        analysis.get("buying_signals"),
-    )
-
-    print(
-        "RECOMMENDED ACTION:",
-        analysis.get("recommended_action"),
     )
 
     # ========================================================
@@ -392,23 +206,11 @@ def analyze_call_intelligence_endpoint(
         agent_call,
     )
 
-    print("\n")
-
-    print(
-        "FINAL MATCHED LEAD:",
-        lead.id if lead else None,
-    )
-
     # ========================================================
     # AUTOMATIC PIPELINE UPDATE
     # ========================================================
 
     if lead:
-
-        print("\n")
-        print("=" * 60)
-        print("RUNNING PIPELINE AUTOMATION")
-        print("=" * 60)
 
         updated_lead = automate_pipeline_stage(
             db=db,
@@ -420,27 +222,6 @@ def analyze_call_intelligence_endpoint(
                 "customer_intent"
             ),
         )
-
-        print("\n")
-
-        print(
-            "PIPELINE AUTOMATION COMPLETE"
-        )
-
-        print(
-            "NEW LEAD STATUS:",
-            updated_lead.status,
-        )
-
-        print("=" * 60)
-
-    else:
-
-        print("\n")
-        print("=" * 60)
-        print("NO LEAD FOUND")
-        print("PIPELINE AUTOMATION SKIPPED")
-        print("=" * 60)
 
     # ========================================================
     # CHECK EXISTING INTELLIGENCE
@@ -458,11 +239,6 @@ def analyze_call_intelligence_endpoint(
     # ========================================================
 
     if existing_intelligence:
-
-        print("\n")
-        print("=" * 60)
-        print("UPDATING EXISTING INTELLIGENCE")
-        print("=" * 60)
 
         intelligence_data = (
             AgentCallIntelligenceUpdate(
@@ -504,23 +280,11 @@ def analyze_call_intelligence_endpoint(
             )
         )
 
-        print("INTELLIGENCE UPDATED")
-
-        print("\n")
-        print("=" * 60)
-        print("CALL INTELLIGENCE END")
-        print("=" * 60)
-
         return updated_intelligence
 
     # ========================================================
     # CREATE NEW INTELLIGENCE
     # ========================================================
-
-    print("\n")
-    print("=" * 60)
-    print("CREATING NEW INTELLIGENCE")
-    print("=" * 60)
 
     intelligence_data = (
         AgentCallIntelligenceCreate(
@@ -561,12 +325,5 @@ def analyze_call_intelligence_endpoint(
             intelligence_data,
         )
     )
-
-    print("NEW INTELLIGENCE CREATED")
-
-    print("\n")
-    print("=" * 60)
-    print("CALL INTELLIGENCE END")
-    print("=" * 60)
 
     return created_intelligence
