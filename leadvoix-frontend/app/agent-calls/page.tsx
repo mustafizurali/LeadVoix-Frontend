@@ -4,7 +4,7 @@ import DashboardLayout from "@/modules/dashboard/components/DashboardLayout";
 import AgentCallList from "@/modules/agent-calls/components/AgentCallList";
 
 export default function AgentCallsPage() {
-  const agentId = 2;
+  const agentId = 1;
 
   return (
     <DashboardLayout>

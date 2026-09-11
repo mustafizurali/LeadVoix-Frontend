@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useMutation,
   useQuery,
@@ -8,7 +8,6 @@ import {
 
 import {
   analyzeAgentCall,
-  getAgentCallIntelligence,
   getAgentCalls,
 } from "../api/agentCallApi";
 
@@ -31,11 +30,15 @@ export default function AgentCallList({
     useState<AgentCallIntelligence | null>(null);
 
   /*
-   * ============================================================
-   * GET AGENT CALLS
-   * ============================================================
+   * Store analyzed intelligence by call ID.
+   * Backend currently does not provide a GET intelligence endpoint.
    */
+  const [intelligenceByCall, setIntelligenceByCall] =
+    useState<Record<number, AgentCallIntelligence>>({});
 
+  /*
+   * GET AGENT CALLS
+   */
   const {
     data: calls,
     isLoading,
@@ -47,54 +50,19 @@ export default function AgentCallList({
   });
 
   /*
-   * ============================================================
-   * GET EXISTING AI INTELLIGENCE
-   * ============================================================
-   */
-
-  const {
-    data: existingIntelligence,
-    isLoading: isLoadingIntelligence,
-    isError: isIntelligenceError,
-  } = useQuery({
-    queryKey: [
-      "agent-call-intelligence",
-      agentId,
-      selectedCall?.id,
-    ],
-    queryFn: () =>
-      getAgentCallIntelligence(
-        agentId,
-        selectedCall!.id
-      ),
-    enabled: !!selectedCall,
-    retry: false,
-  });
-
-  /*
-   * ============================================================
-   * SYNC EXISTING INTELLIGENCE INTO LOCAL STATE
-   * ============================================================
-   */
-
-  useEffect(() => {
-    if (existingIntelligence) {
-      setIntelligence(existingIntelligence);
-    }
-  }, [existingIntelligence]);
-
-  /*
-   * ============================================================
    * ANALYZE CALL
-   * ============================================================
    */
-
   const analyzeMutation = useMutation({
     mutationFn: (callId: number) =>
       analyzeAgentCall(agentId, callId),
 
     onSuccess: (data) => {
       setIntelligence(data);
+
+      setIntelligenceByCall((prev) => ({
+        ...prev,
+        [data.agent_call_id]: data,
+      }));
     },
 
     onError: (error) => {
@@ -106,24 +74,21 @@ export default function AgentCallList({
   });
 
   /*
-   * ============================================================
    * VIEW DETAILS
-   * ============================================================
    */
-
   const handleViewDetails = (call: AgentCall) => {
     setSelectedCall(call);
-    setIntelligence(null);
+
+    setIntelligence(
+      intelligenceByCall[call.id] ?? null
+    );
 
     analyzeMutation.reset();
   };
 
   /*
-   * ============================================================
    * ANALYZE SELECTED CALL
-   * ============================================================
    */
-
   const handleAnalyzeCall = () => {
     if (!selectedCall) return;
 
@@ -131,11 +96,8 @@ export default function AgentCallList({
   };
 
   /*
-   * ============================================================
    * CLOSE MODAL
-   * ============================================================
    */
-
   const closeDetails = () => {
     setSelectedCall(null);
     setIntelligence(null);
@@ -144,11 +106,8 @@ export default function AgentCallList({
   };
 
   /*
-   * ============================================================
    * LOADING
-   * ============================================================
    */
-
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
@@ -160,11 +119,8 @@ export default function AgentCallList({
   }
 
   /*
-   * ============================================================
    * ERROR
-   * ============================================================
    */
-
   if (isError) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6">
@@ -176,11 +132,8 @@ export default function AgentCallList({
   }
 
   /*
-   * ============================================================
    * EMPTY STATE
-   * ============================================================
    */
-
   if (!calls || calls.length === 0) {
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm">
@@ -191,17 +144,9 @@ export default function AgentCallList({
     );
   }
 
-  /*
-   * ============================================================
-   * MAIN UI
-   * ============================================================
-   */
-
   return (
     <>
-      {/* ========================================================
-          CALL LIST
-      ========================================================= */}
+      {/* CALL LIST */}
 
       <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
         {/* HEADER */}
@@ -321,9 +266,7 @@ export default function AgentCallList({
         </div>
       </div>
 
-      {/* ========================================================
-          CALL DETAILS MODAL
-      ========================================================= */}
+      {/* CALL DETAILS MODAL */}
 
       {selectedCall && (
         <div
@@ -335,9 +278,7 @@ export default function AgentCallList({
           }}
         >
           <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-            {/* ==================================================
-                MODAL HEADER
-            ================================================== */}
+            {/* MODAL HEADER */}
 
             <div className="flex items-center justify-between border-b px-6 py-5">
               <div>
@@ -363,14 +304,10 @@ export default function AgentCallList({
               </button>
             </div>
 
-            {/* ==================================================
-                MODAL CONTENT
-            ================================================== */}
+            {/* MODAL CONTENT */}
 
             <div className="space-y-6 p-6">
-              {/* =================================================
-                  CALL INFORMATION
-              ================================================== */}
+              {/* CALL INFORMATION */}
 
               <section>
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -423,9 +360,7 @@ export default function AgentCallList({
                 </div>
               </section>
 
-              {/* =================================================
-                  TRANSCRIPT
-              ================================================== */}
+              {/* TRANSCRIPT */}
 
               <section>
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
@@ -446,9 +381,7 @@ export default function AgentCallList({
                 </div>
               </section>
 
-              {/* =================================================
-                  RECORDING
-              ================================================== */}
+              {/* RECORDING */}
 
               {selectedCall.recording_url && (
                 <section>
@@ -469,9 +402,7 @@ export default function AgentCallList({
                 </section>
               )}
 
-              {/* =================================================
-                  AI CALL INTELLIGENCE
-              ================================================== */}
+              {/* AI CALL INTELLIGENCE */}
 
               <section className="rounded-xl border border-blue-100 bg-blue-50 p-5">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
@@ -489,10 +420,7 @@ export default function AgentCallList({
                   <button
                     type="button"
                     onClick={handleAnalyzeCall}
-                    disabled={
-                      analyzeMutation.isPending ||
-                      isLoadingIntelligence
-                    }
+                    disabled={analyzeMutation.isPending}
                     className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {analyzeMutation.isPending
@@ -500,28 +428,6 @@ export default function AgentCallList({
                       : "Analyze Call"}
                   </button>
                 </div>
-
-                {/* EXISTING INTELLIGENCE LOADING */}
-
-                {isLoadingIntelligence && (
-                  <div className="mt-4 rounded-lg border bg-white p-4">
-                    <p className="text-sm text-slate-500">
-                      Loading existing AI analysis...
-                    </p>
-                  </div>
-                )}
-
-                {/* INTELLIGENCE GET ERROR */}
-
-                {isIntelligenceError &&
-                  !isLoadingIntelligence && (
-                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                      <p className="text-sm text-amber-700">
-                        No existing AI analysis found.
-                        You can analyze this call now.
-                      </p>
-                    </div>
-                  )}
 
                 {/* ANALYSIS ERROR */}
 
@@ -535,9 +441,7 @@ export default function AgentCallList({
                 )}
               </section>
 
-              {/* =================================================
-                  AI INTELLIGENCE RESULT
-              ================================================== */}
+              {/* AI INTELLIGENCE RESULT */}
 
               {intelligence && (
                 <section>
@@ -652,9 +556,7 @@ export default function AgentCallList({
               )}
             </div>
 
-            {/* ==================================================
-                MODAL FOOTER
-            ================================================== */}
+            {/* MODAL FOOTER */}
 
             <div className="flex justify-end border-t px-6 py-4">
               <button
