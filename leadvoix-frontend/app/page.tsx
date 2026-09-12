@@ -806,15 +806,15 @@ export default function HomePage() {
               </ul>
 
               <Link
-                href="/login"
-                className={`mt-8 block rounded-xl px-5 py-3 text-center text-sm font-bold ${
-                  plan.popular
-                    ? "bg-gradient-to-r from-blue-500 to-violet-500"
-                    : "border border-white/10 bg-white/[0.04]"
-                }`}
-              >
-                Book a Demo
-              </Link>
+             href={plan.name === "Scale" ? "#contact" : "/login"}
+             className={`mt-8 block rounded-xl px-5 py-3 text-center text-sm font-bold ${
+             plan.popular
+               ? "bg-gradient-to-r from-blue-500 to-violet-500"
+                : "border border-white/10 bg-white/[0.04]"
+            }`}
+            >
+             {plan.name === "Scale" ? "Book a Demo" : "Start Free"}
+            </Link>
             </div>
           ))}
         </div>
