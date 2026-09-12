@@ -738,24 +738,24 @@ export default function HomePage() {
           {[
             {
               name: "Starter",
-              price: "$79",
+              price: "$129",
               description: "For small teams getting started with AI voice.",
               features: [
-                "1 AI Voice Agent",
-                "Up to 300 calls / month",
-                "Lead qualification",
-                "CRM up to 500 contacts",
-                "Email follow-up templates",
-              ],
+                 "1 AI Voice Agent",
+                 "300 AI call minutes / month",
+                 "Lead qualification",
+                 "CRM up to 500 contacts",
+                 "Email follow-up templates",
+                ],
             },
             {
               name: "Growth",
-              price: "$199",
+              price: "$299",
               description: "For growing teams that need more power.",
               popular: true,
               features: [
                 "3 AI Voice Agents",
-                "Up to 1,000 calls / month",
+                "1,000 AI call minutes / month",
                 "AI Call Intelligence",
                 "Full CRM + Pipelines",
                 "Automated follow-up sequences",
@@ -763,11 +763,11 @@ export default function HomePage() {
             },
             {
               name: "Scale",
-              price: "$499",
+              price: "$699",
               description: "For businesses with high call volumes.",
               features: [
-                "Unlimited AI Agents",
-                "Unlimited calls",
+                "10 AI Voice Agents",
+                "2,500 AI call minutes / month",
                 "Advanced call analytics",
                 "Custom integrations",
                 "Dedicated onboarding",
@@ -813,11 +813,14 @@ export default function HomePage() {
                     : "border border-white/10 bg-white/[0.04]"
                 }`}
               >
-                Start Free
+                Book a Demo
               </Link>
             </div>
           ))}
         </div>
+        <p className="mt-6 text-center text-xs text-slate-500">
+          Additional AI call minutes: $0.25/min
+        </p>
       </section>
 
         {/* FINAL CTA / CONTACT */}
