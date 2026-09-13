@@ -30,6 +30,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
     "http://localhost:3000",
+    "https://leadvoix.com",
+    "https://www.leadvoix.com",
     "http://127.0.0.1:3000",
     "https://lead-voix-frontend.vercel.app",
     "https://lead-voix-frontend-9gwhbub1k-sk-mustafizur-alis-projects.vercel.app",
