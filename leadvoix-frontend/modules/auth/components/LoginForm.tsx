@@ -1,12 +1,12 @@
 "use client";
-
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { loginSchema, LoginFormData } from "../schemas/login.schema";
 import { useLogin } from "../hooks/useLogin";
 
-import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import {
   Card,
@@ -75,6 +75,15 @@ export default function LoginForm() {
             >
               Login
             </button>
+            <p className="text-center text-sm text-slate-600">
+            Don&apos;t have an account?{" "}
+           <Link
+            href="/signup"
+           className="font-semibold text-black hover:underline"
+          >
+           Sign up
+           </Link>
+         </p>
           </form>
         </CardContent>
       </Card>

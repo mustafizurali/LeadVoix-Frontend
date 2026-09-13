@@ -247,7 +247,7 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/login"
+              href="/signup"
               className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
             >
               Start Free →
@@ -282,7 +282,7 @@ export default function HomePage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/login"
+                href="/signup"
                 className="rounded-xl bg-gradient-to-r from-blue-500 to-violet-500 px-6 py-3.5 text-center text-sm font-bold shadow-xl shadow-blue-500/20 transition hover:scale-[1.02]"
               >
                 Start Free — No credit card
@@ -806,7 +806,7 @@ export default function HomePage() {
               </ul>
 
               <Link
-             href={plan.name === "Scale" ? "#contact" : "/login"}
+             href={plan.name === "Scale" ? "#contact" : "/signup"}
              className={`mt-8 block rounded-xl px-5 py-3 text-center text-sm font-bold ${
              plan.popular
                ? "bg-gradient-to-r from-blue-500 to-violet-500"
