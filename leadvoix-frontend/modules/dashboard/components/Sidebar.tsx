@@ -33,6 +33,14 @@ const menuItems = [
     href: "/tasks",
   },
   {
+    title: "Agents",
+    href: "/agents",
+  },
+  {
+    title: "Agent Calls",
+    href: "/agent-calls",
+  },
+  {
     title: "Settings",
     href: "/settings",
   },
